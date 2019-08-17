@@ -6,14 +6,6 @@ import cn.tursom.utils.background
 abstract class BaseService() : Service {
     override var user: String? = null
 
-    init {
-        if (javaClass.getAnnotation(RegisterService::class.java) != null) {
-            background {
-                //TODO
-            }
-        }
-    }
-
     override suspend fun receiveMessage(message: Any?, environment: Environment): Any? = null
 
     override suspend fun getConnection(connection: ServiceConnection, environment: Environment) {
@@ -22,10 +14,10 @@ abstract class BaseService() : Service {
 
     override suspend fun initService(user: String?, environment: Environment) {
         this.user = user
-//        logger.info("service $id init")
+        environment.logger.info("service $serviceId init")
     }
 
     override suspend fun destroyService(environment: Environment) {
-//        logger.info("service $id destroy")
+        environment.logger.info("service $serviceId destroy")
     }
 }
