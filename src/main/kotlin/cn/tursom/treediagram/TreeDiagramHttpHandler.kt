@@ -74,7 +74,9 @@ class TreeDiagramHttpHandler(configPath: String = "config.xml") : HttpHandler<Ne
                 false
             }
         }
-        set(value) {}
+        set(value) {
+            throw Exception("var newServer cannot set, $value")
+        }
 
     val adminEnvironment: AdminEnvironment = object : AdminEnvironment {
         override val router: SuspendRouter<ModInterface> = this@TreeDiagramHttpHandler.router
