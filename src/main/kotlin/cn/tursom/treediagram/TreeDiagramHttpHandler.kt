@@ -29,6 +29,7 @@ import kotlinx.coroutines.withTimeout
 import java.io.File
 import java.io.PrintStream
 import java.util.logging.FileHandler
+import java.util.logging.Level
 import java.util.logging.Logger
 
 class TreeDiagramHttpHandler(configPath: String = "config.xml") : HttpHandler<NettyHttpContent> {
@@ -150,36 +151,28 @@ class TreeDiagramHttpHandler(configPath: String = "config.xml") : HttpHandler<Ne
     val modManager = ModManager(adminEnvironment)
 
     override fun handle(content: NettyHttpContent) = background {
-        println(usingTime {
-            val (mod, path) = router.get(content.uri)
-            if (mod == null) {
-                content.responseCode = 404
-                content.finish()
-            } else {
-                path.forEach { content.addParam(it.first, it.second) }
+        logger.log(Level.INFO, "${content.clientIp} require ${content.httpMethod} ${content.uri}")
+        val (mod, path) = router.get(content.uri)
+        if (mod == null) {
+            content.responseCode = 404
+            content.finish()
+        } else {
+            path.forEach { content.addParam(it.first, it.second) }
 
-                try {
-                    if (mod.user == null) mod.bottomHandle(content, adminEnvironment)
-                    else mod.bottomHandle(content, environment)
-                } catch (e: Throwable) {
-                    e.printStackTrace()
-                    content.responseCode = 500
-                    content.reset()
-                    e.printStackTrace(PrintStream(content.responseBody))
-                    content.finish()
-                }
+            try {
+                if (mod.user == null) mod.bottomHandle(content, adminEnvironment)
+                else mod.bottomHandle(content, environment)
+            } catch (e: Throwable) {
+                e.printStackTrace()
+                content.responseCode = 500
+                content.reset()
+                e.printStackTrace(PrintStream(content.responseBody))
+                content.finish()
             }
-        })
+        }
     }
 
     override fun exception(e: ExceptionContent) {
         e.cause.printStackTrace()
-    }
-
-    inline fun usingTime(action: () -> Unit): Long {
-        val t1 = System.currentTimeMillis()
-        action()
-        val t2 = System.currentTimeMillis()
-        return t2 - t1
     }
 }
