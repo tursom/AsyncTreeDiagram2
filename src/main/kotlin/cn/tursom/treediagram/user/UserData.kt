@@ -10,13 +10,8 @@ import cn.tursom.utils.bytebuffer.fromJson
 data class UserData(
     @PrimaryKey @NotNull val username: String,
     @NotNull val password: String,
-    @NotNull @Constructor("setLevel") @FieldType("TEXT") @Getter("getLevel") val level: List<String>
+    @NotNull @Constructor("toSetLevel") @FieldType("TEXT") @Getter("toGetLevel") val level: List<String>
 ) {
-    fun setLevel(level: String): List<String> {
-        return gson.fromJson(level)
-    }
-
-    fun getLevel(): String {
-        return gson.toJson(level).sqlStr
-    }
+    fun toSetLevel(level: String): List<String> = gson.fromJson(level)
+    fun toGetLevel() = gson.toJson(level).sqlStr
 }
