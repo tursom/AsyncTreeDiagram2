@@ -13,6 +13,8 @@ import kotlin.coroutines.suspendCoroutine
 @Suppress("MemberVisibilityCanBePrivate", "unused")
 abstract class Mod : ModInterface, Service {
     override val user: String? = null
+    override val admin: Boolean = super.admin
+
     /**
      * 模组私有目录
      * 在调用的时候会自动创建目录，不必担心目录不存在的问题

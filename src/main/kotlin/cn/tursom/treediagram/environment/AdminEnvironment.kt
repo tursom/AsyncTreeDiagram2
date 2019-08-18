@@ -20,4 +20,6 @@ interface AdminEnvironment : Environment {
     suspend fun removeMod(user: String?, mod: ModInterface): Boolean = false
 
     suspend fun registerUser(content: HttpContent): String
+
+    suspend fun getMod(user: String?, modId: String): ModInterface?
 }

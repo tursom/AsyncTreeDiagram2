@@ -10,6 +10,7 @@ fun main(args: Array<String>) {
     else TreeDiagramHttpHandler()
     val server = NettyHttpServer(handler.config.port, handler)
     server.run()
+    println(handler.router.toString())
     println("server started on port ${server.port}")
     println("try url http://127.0.0.1:${server.port}/")
 }

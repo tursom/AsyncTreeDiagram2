@@ -69,7 +69,7 @@ class ModLoader private constructor(
             return myClassName
         }
 
-        suspend fun getClassLoader(
+        suspend fun getModLoader(
             configData: ClassData,
             user: String? = null,
             rootPath: String? = null,

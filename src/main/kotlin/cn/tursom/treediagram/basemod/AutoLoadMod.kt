@@ -19,6 +19,7 @@ import java.util.logging.Level
 @ModPath("AutoLoadMod", "AutoLoadMod/:type", "AutoLoadMod/:type/:jar", "AutoLoadMod/:type/:jar/:className")
 class AutoLoadMod : Mod() {
     override val modDescription: String = "在系统启动时自动加载模组"
+    override val admin: Boolean get() = true
 
     override suspend fun init(user: String?, environment: Environment) {
         super.init(user, environment)
@@ -41,7 +42,7 @@ class AutoLoadMod : Mod() {
                 config.jar.forEach forEachConfig@{ (jarName, classes) ->
                     val jarPath = "$path/$jarName"
                     logger.info("自动加载模组正在加载路径jar包：$jarPath")
-                    cn.tursom.treediagram.modloader.ModLoader.getClassLoader(
+                    cn.tursom.treediagram.modloader.ModLoader.getModLoader(
                         ClassData(jarPath, jarPath, if (classes.isNotEmpty()) classes.toList() else null),
                         path.name,
                         null,

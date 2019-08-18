@@ -3,12 +3,14 @@ package cn.tursom.treediagram.basemod
 import cn.tursom.treediagram.environment.AdminEnvironment
 import cn.tursom.treediagram.environment.Environment
 import cn.tursom.treediagram.mod.AbsoluteModPath
+import cn.tursom.treediagram.mod.AdminMod
 import cn.tursom.treediagram.mod.Mod
 import cn.tursom.treediagram.mod.ModPath
 import cn.tursom.web.HttpContent
 
 @AbsoluteModPath("modTree", "modTree/:user", "mod", "mod/system", "mod/:user", "mods", "mods/system", "mods/:user")
 @ModPath("modTree", "modTree/:user", "mod", "mod/system", "mod/:user", "mods", "mods/system", "mods/:user")
+@AdminMod
 class ModTree : Mod() {
     override val modDescription: String = "返回模组树"
 

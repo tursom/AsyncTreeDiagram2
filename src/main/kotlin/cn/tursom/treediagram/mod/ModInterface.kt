@@ -8,6 +8,7 @@ import java.net.URLDecoder
 import java.net.URLEncoder
 
 interface ModInterface {
+    val admin: Boolean get() = javaClass.getAnnotation(AdminMod::class.java) != null
     val prettyJson: Boolean get() = false
     val user: String?
     val version: Int get() = 0

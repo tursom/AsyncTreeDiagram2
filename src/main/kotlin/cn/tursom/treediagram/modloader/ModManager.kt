@@ -14,9 +14,8 @@ import java.util.logging.Logger
 
 class ModManager(val parentEnvironment: AdminEnvironment) : AdminEnvironment by parentEnvironment {
     override val logger = Logger.getLogger("ModManager")!!
-    private val systemModMap = WriteLockHashMap<String, ModInterface>()
-    private val userModMapMap: AsyncRWLockAbstractMap<String, AsyncRWLockAbstractMap<String, ModInterface>> =
-        WriteLockHashMap()
+    val systemModMap = WriteLockHashMap<String, ModInterface>()
+    val userModMapMap: AsyncRWLockAbstractMap<String, AsyncRWLockAbstractMap<String, ModInterface>> = WriteLockHashMap()
 
     @Volatile
     var lastChangeTime: Long = System.currentTimeMillis()

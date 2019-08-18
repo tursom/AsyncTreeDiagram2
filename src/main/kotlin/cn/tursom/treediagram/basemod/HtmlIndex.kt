@@ -2,18 +2,22 @@ package cn.tursom.treediagram.basemod
 
 import cn.tursom.treediagram.environment.AdminEnvironment
 import cn.tursom.treediagram.environment.Environment
-import cn.tursom.treediagram.mod.AbsoluteModPath
-import cn.tursom.treediagram.mod.Mod
-import cn.tursom.treediagram.mod.ModInterface
-import cn.tursom.treediagram.mod.ModPath
+import cn.tursom.treediagram.mod.*
 import cn.tursom.web.HttpContent
 import cn.tursom.web.router.SuspendRouterNode
+import cn.tursom.web.utils.EmptyHttpContent
 
 @AbsoluteModPath("", "index.html")
 @ModPath("", "index.html")
+@AdminMod
 class HtmlIndex : Mod() {
     private var cache: String = ""
     private var cacheTime: Long = 0
+
+    override suspend fun receiveMessage(message: Any?, environment: Environment): Any? {
+        environment as AdminEnvironment
+        return handle(EmptyHttpContent(), environment)
+    }
 
     private suspend fun toString(
         node: SuspendRouterNode<ModInterface>,
@@ -60,6 +64,15 @@ class HtmlIndex : Mod() {
     }
 
     override suspend fun bottomHandle(content: HttpContent, environment: Environment) {
+        val modId = content["mod"]
+        if (modId != null) {
+            val user = content["user"]
+            val mod = (environment as AdminEnvironment).getMod(user, modId)!!
+            if (mod !is HtmlIndex) mod.bottomHandle(
+                content,
+                if (mod.admin) object : Environment by environment {} else environment
+            )
+        }
         content.handleHtml(handle(content, environment))
     }
 }

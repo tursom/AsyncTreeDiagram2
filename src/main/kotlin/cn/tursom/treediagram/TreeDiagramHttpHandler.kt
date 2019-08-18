@@ -35,7 +35,7 @@ import java.util.logging.Logger
 class TreeDiagramHttpHandler(configPath: String = "config.xml") : HttpHandler<NettyHttpContent> {
     private val secretKey: Int = randomInt(-999999999, 999999999)
     private val serviceMap = ReadWriteLockHashMap<String?, AsyncRWLockAbstractMap<String, Service>>()
-    private val router = SuspendRouter<ModInterface>()
+    val router = SuspendRouter<ModInterface>()
     val config = run {
         val configFile = File(configPath)
         if (!configFile.exists()) {
@@ -58,7 +58,7 @@ class TreeDiagramHttpHandler(configPath: String = "config.xml") : HttpHandler<Ne
         )
     }
 
-    private val logger = run {
+    val logger = run {
         val logger = Logger.getLogger("ModLogger")!!
         logger.addHandler(fileHandler)
         logger
@@ -146,6 +146,12 @@ class TreeDiagramHttpHandler(configPath: String = "config.xml") : HttpHandler<Ne
             newConnection.run()
             return newConnection.clientConnection
         }
+
+        override suspend fun getMod(user: String?, modId: String) = if (user != null) {
+            modManager.userModMapMap.get(user)?.get(modId)
+        } else {
+            this.modManager.systemModMap.get(modId)
+        }
     }
 
     val environment: Environment = object : Environment by adminEnvironment {}
@@ -156,13 +162,14 @@ class TreeDiagramHttpHandler(configPath: String = "config.xml") : HttpHandler<Ne
         logger.log(Level.INFO, "${content.clientIp} require ${content.httpMethod} ${content.uri}")
         val (mod, path) = router.get(content.uri)
         if (mod == null) {
+            logger.log(Level.WARNING, "not found ${content.clientIp} require ${content.httpMethod} ${content.uri}")
             content.responseCode = 404
             content.finish()
         } else {
             path.forEach { content.addParam(it.first, it.second) }
 
             try {
-                if (mod.user == null) mod.bottomHandle(content, adminEnvironment)
+                if (mod.admin) mod.bottomHandle(content, adminEnvironment)
                 else mod.bottomHandle(content, environment)
             } catch (e: Throwable) {
                 e.printStackTrace()

@@ -2,10 +2,7 @@ package cn.tursom.treediagram.basemod
 
 import cn.tursom.treediagram.environment.AdminEnvironment
 import cn.tursom.treediagram.environment.Environment
-import cn.tursom.treediagram.mod.AbsoluteModPath
-import cn.tursom.treediagram.mod.Mod
-import cn.tursom.treediagram.mod.ModPath
-import cn.tursom.treediagram.mod.ReturnData
+import cn.tursom.treediagram.mod.*
 import cn.tursom.treediagram.utils.Json.gson
 import cn.tursom.treediagram.utils.ModException
 import cn.tursom.utils.xml.Xml
@@ -18,6 +15,7 @@ import kotlin.system.exitProcess
 
 @AbsoluteModPath("close/:message", "close")
 @ModPath("close/:message", "close")
+@AdminMod
 class Close : Mod() {
     override val modDescription: String = "关闭服务器，需要 admin 等级的权限"
 

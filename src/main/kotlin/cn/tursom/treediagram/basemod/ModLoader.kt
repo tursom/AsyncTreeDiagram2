@@ -3,6 +3,7 @@ package cn.tursom.treediagram.basemod
 import cn.tursom.treediagram.environment.AdminEnvironment
 import cn.tursom.treediagram.environment.Environment
 import cn.tursom.treediagram.mod.AbsoluteModPath
+import cn.tursom.treediagram.mod.AdminMod
 import cn.tursom.treediagram.mod.Mod
 import cn.tursom.treediagram.mod.ModPath
 import cn.tursom.treediagram.modloader.ClassData
@@ -23,6 +24,7 @@ import cn.tursom.web.HttpContent
  */
 @AbsoluteModPath("loadmod", "loadmod/:jarPath", "loadmod/:jarPath/:className", "loadmod/:jarPath/:className/:system")
 @ModPath("loadmod", "loadmod/:jarPath", "loadmod/:jarPath/:className", "loadmod/:jarPath/:className/:system")
+@AdminMod
 class ModLoader : Mod() {
     override val modDescription: String = "加载模组"
     override val modHelper: String = "使用方法：\n" +
@@ -38,7 +40,7 @@ class ModLoader : Mod() {
         val token = environment.token(content)
         val modData = content["modData"]
         val modLoader = if (modData != null) {
-            cn.tursom.treediagram.modloader.ModLoader.getClassLoader(
+            cn.tursom.treediagram.modloader.ModLoader.getModLoader(
                 gson.fromJson(modData),
                 if (content["system"] != "true") {
                     token.usr
@@ -53,7 +55,7 @@ class ModLoader : Mod() {
             val className = content["className"]
             val jarPath = content["jarPath"]
             jarPath ?: throw ModException("no mod get")
-            cn.tursom.treediagram.modloader.ModLoader.getClassLoader(
+            cn.tursom.treediagram.modloader.ModLoader.getModLoader(
                 ClassData(
                     jarPath,
                     jarPath,
