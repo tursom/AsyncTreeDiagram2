@@ -114,21 +114,18 @@ class TreeDiagramHttpHandler(configPath: String = "config.xml") : HttpHandler<Ne
         }
 
         override suspend fun registerMod(user: String?, mod: ModInterface): Boolean {
-            if (user != null) modManager.loadMod(user, mod)
-            else modManager.loadMod(mod)
-            return true
+            return modManager.registerMod(user, mod)
         }
 
         override suspend fun removeService(user: String?, service: Service): Boolean {
-            val map = serviceMap.get(user) ?: return false
+            val map = if (user != null) serviceMap.get(user) ?: return false
+            else systemServiceMap
             map.remove(service.serviceId)
             return true
         }
 
         override suspend fun removeMod(user: String?, mod: ModInterface): Boolean {
-            if (user != null) modManager.removeMod(user, mod)
-            else modManager.removeMod(mod)
-            return true
+            return modManager.removeMod(user, mod)
         }
 
         override suspend fun registerUser(content: HttpContent): String {
