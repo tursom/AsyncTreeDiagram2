@@ -11,32 +11,27 @@ import cn.tursom.treediagram.utils.ModLoadException
 import cn.tursom.utils.asynclock.AsyncRWLockAbstractMap
 import cn.tursom.utils.asynclock.ReadWriteLockHashMap
 import cn.tursom.utils.asynclock.WriteLockHashMap
+import cn.tursom.web.router.SuspendRouter
 import kotlinx.coroutines.runBlocking
 import java.util.logging.Logger
 
-class ModManager(val parentEnvironment: AdminEnvironment) : AdminModEnvironment by parentEnvironment {
+class ModManager(val parentEnvironment: AdminEnvironment) : AdminModEnvironment {
+    override val modManager: ModManager = this
+    override val router: SuspendRouter<ModInterface> = parentEnvironment.router
     private val logger = Logger.getLogger("ModManager")!!
     val systemModMap = WriteLockHashMap<String, ModInterface>()
     val userModMapMap: AsyncRWLockAbstractMap<String, AsyncRWLockAbstractMap<String, ModInterface>> = WriteLockHashMap()
+    private val environment: Environment = object : Environment by parentEnvironment {}
 
     @Volatile
     var lastChangeTime: Long = System.currentTimeMillis()
 
-    private val adminEnvironment: AdminEnvironment = object : AdminEnvironment by parentEnvironment {
-        override val modManager: ModManager get() = this@ModManager
-
-        override suspend fun registerMod(user: String?, mod: ModInterface): Boolean {
-            if (user != null) loadMod(user, mod)
-            else loadMod(mod)
-            return true
-        }
-
-        override suspend fun removeMod(user: String?, mod: ModInterface): Boolean {
-            return true
-        }
+    override suspend fun getMod(user: String?, modId: String) = if (user != null) {
+        modManager.userModMapMap.get(user)?.get(modId)
+    } else {
+        this.modManager.systemModMap.get(modId)
     }
 
-    private val environment: Environment = object : Environment by parentEnvironment {}
 
     override suspend fun registerMod(user: String?, mod: ModInterface): Boolean {
         if (user != null) loadMod(user, mod)
@@ -122,7 +117,7 @@ class ModManager(val parentEnvironment: AdminEnvironment) : AdminModEnvironment 
         removeMod(mod)
 
         //调用模组的初始化函数
-        mod.init(null, adminEnvironment)
+        mod.init(null, parentEnvironment)
 
         //将模组的信息加载到系统中
         systemModMap.set(mod.modId, mod)
@@ -169,7 +164,7 @@ class ModManager(val parentEnvironment: AdminEnvironment) : AdminModEnvironment 
         removeMod(user, mod)
 
         // 调用模组的初始化函数
-        mod.init(user, adminEnvironment)
+        mod.init(user, parentEnvironment)
 
         // 将模组的信息加载到系统中
         val userModMap = (userModMapMap.get(user) ?: run {
@@ -248,7 +243,7 @@ class ModManager(val parentEnvironment: AdminEnvironment) : AdminModEnvironment 
         val modObject = systemModMap.get(mod.modId) ?: return
         logger.info("remove system mod: $mod")
         try {
-            modObject.destroy(adminEnvironment)
+            modObject.destroy(parentEnvironment)
         } catch (e: Exception) {
             e.printStackTrace()
         }

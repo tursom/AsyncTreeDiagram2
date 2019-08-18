@@ -91,25 +91,6 @@ class TreeDiagramHttpHandler(configPath: String = "config.xml") : HttpHandler<Ne
 
         override suspend fun getRouterTree(): String = router.suspendToString()
 
-        override suspend fun registerService(user: String?, service: Service): Boolean {
-            return serviceManager.registerService(user, service)
-        }
-
-        override suspend fun registerMod(user: String?, mod: ModInterface): Boolean {
-            return modManager.registerMod(user, mod)
-        }
-
-        override suspend fun removeService(user: String?, service: Service): Boolean {
-            val map = if (user != null) serviceMap.get(user) ?: return false
-            else systemServiceMap
-            map.remove(service.serviceId)
-            return true
-        }
-
-        override suspend fun removeMod(user: String?, mod: ModInterface): Boolean {
-            return modManager.removeMod(user, mod)
-        }
-
         override suspend fun registerUser(content: HttpContent): String {
             return UserUtils.register(database, secretKey, content, newServer)
         }
@@ -122,38 +103,34 @@ class TreeDiagramHttpHandler(configPath: String = "config.xml") : HttpHandler<Ne
             return TokenData.getToken(user, password, database = database, secretKey = secretKey)
         }
 
+        override suspend fun getMod(user: String?, modId: String) = modManager.getMod(user, modId)
+
+        override suspend fun registerMod(user: String?, mod: ModInterface): Boolean {
+            return modManager.registerMod(user, mod)
+        }
+
+        override suspend fun removeMod(user: String?, mod: ModInterface): Boolean {
+            return modManager.removeMod(user, mod)
+        }
+
+        override suspend fun registerService(user: String?, service: Service): Boolean {
+            return serviceManager.registerService(user, service)
+        }
+
+        override suspend fun removeService(user: String?, service: Service): Boolean {
+            return serviceManager.removeService(user, service)
+        }
+
         override suspend fun call(user: String?, serviceId: String, message: Any?, timeout: Long): Any? {
-            val map = if (user != null) serviceMap.get(user) ?: systemServiceMap else systemServiceMap
-            val service = map.get(serviceId)!!
-            val environment = this
-            return withTimeout(timeout) {
-                service.receiveMessage(
-                    message,
-                    if (service.adminService) environment else this@TreeDiagramHttpHandler.environment
-                )
-            }
+            return serviceManager.call(user, serviceId, message, timeout)
         }
 
         override suspend fun connect(user: String?, serviceId: String): ServiceConnection? {
-            val map = serviceMap.get(user) ?: return null
-            val service = map.get(serviceId) ?: return null
-            val newConnection = ServiceConnectionDescription(
-                service,
-                if (service.adminService) this else this@TreeDiagramHttpHandler.environment
-            )
-            newConnection.run()
-            return newConnection.clientConnection
-        }
-
-        override suspend fun getMod(user: String?, modId: String) = if (user != null) {
-            modManager.userModMapMap.get(user)?.get(modId)
-        } else {
-            this.modManager.systemModMap.get(modId)
+            return serviceManager.connect(user, serviceId)
         }
     }
 
     val environment: Environment = object : Environment by adminEnvironment {}
-
     val modManager = ModManager(adminEnvironment)
     val serviceManager = ServiceManager(adminEnvironment)
 

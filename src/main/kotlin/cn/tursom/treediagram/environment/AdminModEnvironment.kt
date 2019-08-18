@@ -8,8 +8,8 @@ interface AdminModEnvironment {
     val modManager: ModManager
     val router: SuspendRouter<ModInterface>
 
+    suspend fun getMod(user: String?, modId: String): ModInterface?
+
     suspend fun registerMod(user: String?, mod: ModInterface): Boolean
     suspend fun removeMod(user: String?, mod: ModInterface): Boolean
-
-    suspend fun getMod(user: String?, modId: String): ModInterface?
 }
