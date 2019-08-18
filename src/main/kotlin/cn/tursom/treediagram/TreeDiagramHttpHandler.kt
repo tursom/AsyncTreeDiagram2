@@ -168,6 +168,10 @@ class TreeDiagramHttpHandler(configPath: String = "config.xml") : HttpHandler<Ne
 
     val modManager = ModManager(adminEnvironment)
 
+    init {
+        logger.log(Level.INFO, "from $configPath loaded config: $config")
+    }
+
     override fun handle(content: NettyHttpContent) = background {
         logger.log(Level.INFO, "${content.clientIp} require ${content.httpMethod} ${content.uri}")
         val (mod, path) = router.get(content.uri)
