@@ -17,28 +17,15 @@ import java.util.logging.Logger
 
 class ModManager(val parentEnvironment: AdminEnvironment) : AdminModEnvironment {
     override val modManager: ModManager = this
-    override val router: SuspendRouter<ModInterface> = parentEnvironment.router
+    override val router: SuspendRouter<ModInterface> = SuspendRouter()
     private val logger = Logger.getLogger("ModManager")!!
-    override val systemModMap = WriteLockHashMap<String, ModInterface>()
+    override val systemModMap: AsyncRWLockAbstractMap<String, ModInterface> = WriteLockHashMap()
     override val userModMapMap: AsyncRWLockAbstractMap<String, AsyncRWLockAbstractMap<String, ModInterface>> =
         WriteLockHashMap()
     private val environment: Environment = object : Environment by parentEnvironment {}
 
     @Volatile
     override var modEnvLastChangeTime: Long = System.currentTimeMillis()
-
-    override suspend fun getMod(user: String?, modId: String) = if (user != null) {
-        modManager.userModMapMap.get(user)?.get(modId)
-    } else {
-        this.modManager.systemModMap.get(modId)
-    }
-
-
-    override suspend fun registerMod(user: String?, mod: ModInterface): Boolean {
-        if (user != null) loadMod(user, mod)
-        else loadMod(mod)
-        return true
-    }
 
     init {
         // 加载系统模组
@@ -67,6 +54,21 @@ class ModManager(val parentEnvironment: AdminEnvironment) : AdminModEnvironment 
             }
         }
     }
+
+    override suspend fun getMod(user: String?, modId: String) = if (user != null) {
+        modManager.userModMapMap.get(user)?.get(modId)
+    } else {
+        this.modManager.systemModMap.get(modId)
+    }
+
+
+    override suspend fun registerMod(user: String?, mod: ModInterface): Boolean {
+        if (user != null) loadMod(user, mod)
+        else loadMod(mod)
+        return true
+    }
+
+    override suspend fun getRouterTree(): String = router.suspendToString()
 
     override suspend fun getSystemMod(): Set<String> {
         val pathSet = HashSet<String>()

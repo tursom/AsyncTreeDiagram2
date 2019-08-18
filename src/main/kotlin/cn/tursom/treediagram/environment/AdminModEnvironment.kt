@@ -2,16 +2,17 @@ package cn.tursom.treediagram.environment
 
 import cn.tursom.treediagram.mod.ModInterface
 import cn.tursom.treediagram.modmanager.ModManager
+import cn.tursom.utils.asynclock.AsyncLockMap
 import cn.tursom.utils.asynclock.AsyncRWLockAbstractMap
 import cn.tursom.utils.asynclock.WriteLockHashMap
 import cn.tursom.web.router.SuspendRouter
 
-interface AdminModEnvironment {
+interface AdminModEnvironment : ModEnvironment {
     val modManager: AdminModEnvironment
-    val router: SuspendRouter<ModInterface>
+    val router: SuspendRouter<out ModInterface>
     val modEnvLastChangeTime: Long
-    val systemModMap: AsyncRWLockAbstractMap<String, ModInterface>
-    val userModMapMap: AsyncRWLockAbstractMap<String, AsyncRWLockAbstractMap<String, ModInterface>>
+    val systemModMap: AsyncLockMap<out String, out ModInterface>
+    val userModMapMap: AsyncLockMap<out String, out AsyncLockMap<out String, out ModInterface>>
 
     suspend fun getMod(user: String?, modId: String): ModInterface?
     suspend fun getSystemMod(): Set<String>

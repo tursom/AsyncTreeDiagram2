@@ -15,6 +15,7 @@ import cn.tursom.treediagram.user.UserUtils
 import cn.tursom.treediagram.utils.Config
 import cn.tursom.treediagram.utils.ModException
 import cn.tursom.treediagram.utils.WrongTokenException
+import cn.tursom.utils.asynclock.AsyncLockMap
 import cn.tursom.utils.asynclock.AsyncRWLockAbstractMap
 import cn.tursom.utils.asynclock.ReadWriteLockHashMap
 import cn.tursom.utils.background
@@ -36,7 +37,6 @@ class TreeDiagramHttpHandler(configPath: String = "config.xml") : HttpHandler<Ne
     private val secretKey: Int = randomInt(-999999999, 999999999)
     private val systemServiceMap = ReadWriteLockHashMap<String, Service>()
     private val serviceMap = ReadWriteLockHashMap<String?, AsyncRWLockAbstractMap<String, Service>>()
-    val router = SuspendRouter<ModInterface>()
     val config = run {
         val configFile = File(configPath)
         if (!configFile.exists()) {
@@ -80,16 +80,14 @@ class TreeDiagramHttpHandler(configPath: String = "config.xml") : HttpHandler<Ne
         }
 
     val adminEnvironment: AdminEnvironment = object : AdminEnvironment {
-        override val router: SuspendRouter<ModInterface> = this@TreeDiagramHttpHandler.router
+        override val router: SuspendRouter<ModInterface> get() = modManager.router
         override val logger: Logger = this@TreeDiagramHttpHandler.logger
         override val modManager: ModManager get() = this@TreeDiagramHttpHandler.modManager
         override val config: Config = this@TreeDiagramHttpHandler.config
         override val fileHandler: FileHandler = this@TreeDiagramHttpHandler.fileHandler
         override val modEnvLastChangeTime: Long get() = modManager.modEnvLastChangeTime
-        override val systemModMap: AsyncRWLockAbstractMap<String, ModInterface> get() = modManager.systemModMap
-        override val userModMapMap get() = modManager.userModMapMap
-
-        override suspend fun getRouterTree(): String = router.suspendToString()
+        override val systemModMap: AsyncLockMap<out String, out ModInterface> get() = modManager.systemModMap
+        override val userModMapMap: AsyncLockMap<out String, out AsyncLockMap<out String, out ModInterface>> get() = modManager.userModMapMap
 
         override suspend fun registerUser(content: HttpContent): String {
             return UserUtils.register(database, secretKey, content, newServer)
@@ -103,6 +101,7 @@ class TreeDiagramHttpHandler(configPath: String = "config.xml") : HttpHandler<Ne
             return TokenData.getToken(user, password, database = database, secretKey = secretKey)
         }
 
+        override suspend fun getRouterTree(): String = modManager.getRouterTree()
         override suspend fun getMod(user: String?, modId: String) = modManager.getMod(user, modId)
         override suspend fun getSystemMod(): Set<String> = modManager.getSystemMod()
         override suspend fun getUserMod(user: String?): Set<String>? = modManager.getUserMod(user)
@@ -138,7 +137,7 @@ class TreeDiagramHttpHandler(configPath: String = "config.xml") : HttpHandler<Ne
 
     override fun handle(content: NettyHttpContent) = background {
         logger.log(Level.INFO, "${content.clientIp} require ${content.httpMethod} ${content.uri}")
-        val (mod, path) = router.get(content.uri)
+        val (mod, path) = modManager.router.get(content.uri)
         if (mod == null) {
             logger.log(Level.WARNING, "not found ${content.clientIp} require ${content.httpMethod} ${content.uri}")
             content.responseCode = 404
@@ -152,8 +151,6 @@ class TreeDiagramHttpHandler(configPath: String = "config.xml") : HttpHandler<Ne
             } catch (e: ModException) {
                 content.responseCode = 500
                 content.reset()
-                //e.printStackTrace(PrintStream(content.responseBody))
-                //content.write("${e.javaClass}: ${e.message}")
                 logger.log(Level.WARNING, "${e.javaClass}: ${e.message}")
                 content.responseCode = 500
                 content.reset()
