@@ -1,22 +1,23 @@
 package cn.tursom.treediagram.servicemanager
 
+import cn.tursom.treediagram.service.ServiceConnection
 import kotlinx.coroutines.channels.Channel
 
-class ServiceConnection(
+class DefaultServiceConnection(
     private val parent: ServiceConnectionDescription,
     private val sendChannel: Channel<Any>,
     private val recvChannel: Channel<Any>
-) {
-    suspend fun send(message: Any) {
+) : ServiceConnection {
+    override suspend fun send(message: Any) {
         sendChannel.send(message)
     }
 
     @Suppress("UNCHECKED_CAST")
-    suspend fun <T> recv(): T {
+    override suspend fun <T> recv(): T {
         return recvChannel.receive() as T
     }
 
-    fun close() {
+    override fun close() {
         parent.close()
     }
 }

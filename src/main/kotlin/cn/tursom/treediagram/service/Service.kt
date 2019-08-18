@@ -1,7 +1,6 @@
 package cn.tursom.treediagram.service
 
 import cn.tursom.treediagram.environment.Environment
-import cn.tursom.treediagram.servicemanager.ServiceConnection
 
 /**
  * 轻量级模组，只对内提供服务

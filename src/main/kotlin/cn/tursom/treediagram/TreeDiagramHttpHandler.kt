@@ -7,7 +7,7 @@ import cn.tursom.treediagram.environment.Environment
 import cn.tursom.treediagram.mod.ModInterface
 import cn.tursom.treediagram.modmanager.ModManager
 import cn.tursom.treediagram.service.Service
-import cn.tursom.treediagram.servicemanager.ServiceConnection
+import cn.tursom.treediagram.service.ServiceConnection
 import cn.tursom.treediagram.servicemanager.ServiceManager
 import cn.tursom.treediagram.user.TokenData
 import cn.tursom.treediagram.user.UserData

@@ -24,10 +24,8 @@ class ServiceConnectionDescription(
         }
     }
 
-    val clientConnection =
-        ServiceConnection(this, serverChannel, clientChannel)
-    private val serverConnection =
-        ServiceConnection(this, clientChannel, serverChannel)
+    val clientConnection = DefaultServiceConnection(this, serverChannel, clientChannel)
+    private val serverConnection = DefaultServiceConnection(this, clientChannel, serverChannel)
 
     fun close() {
         clientChannel.close()

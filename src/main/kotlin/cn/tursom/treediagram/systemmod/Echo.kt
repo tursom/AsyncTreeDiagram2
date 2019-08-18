@@ -1,11 +1,11 @@
 package cn.tursom.treediagram.systemmod
 
 import cn.tursom.treediagram.environment.Environment
+import cn.tursom.treediagram.service.ServiceConnection
 import cn.tursom.treediagram.mod.AbsoluteModPath
 import cn.tursom.treediagram.mod.Mod
 import cn.tursom.treediagram.mod.ModPath
 import cn.tursom.treediagram.service.RegisterService
-import cn.tursom.treediagram.servicemanager.ServiceConnection
 import cn.tursom.treediagram.service.ServiceId
 import cn.tursom.treediagram.utils.ModException
 import cn.tursom.web.HttpContent

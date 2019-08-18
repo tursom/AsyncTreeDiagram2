@@ -18,7 +18,7 @@ import java.util.logging.Logger
 class ModManager(val parentEnvironment: AdminEnvironment) : AdminModEnvironment {
     override val modManager: ModManager = this
     override val router: SuspendRouter<ModInterface> = SuspendRouter()
-    private val logger = Logger.getLogger("ModManager")!!
+    override val logger = Logger.getLogger("ModManager")!!
     override val systemModMap: AsyncRWLockAbstractMap<String, ModInterface> = WriteLockHashMap()
     override val userModMapMap: AsyncRWLockAbstractMap<String, AsyncRWLockAbstractMap<String, ModInterface>> =
         WriteLockHashMap()

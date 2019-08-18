@@ -20,7 +20,7 @@ class HtmlIndex : Mod() {
     }
 
     private suspend fun toString(
-        node: SuspendRouterNode<ModInterface>,
+        node: SuspendRouterNode<out ModInterface>,
         stringBuilder: StringBuilder,
         indentation: String
     ) {
