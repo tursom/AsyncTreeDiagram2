@@ -1,4 +1,4 @@
-package cn.tursom.treediagram.modloader
+package cn.tursom.treediagram.modmanager
 
 import cn.tursom.treediagram.mod.ModInterface
 import cn.tursom.treediagram.utils.ListClassLoader
@@ -6,7 +6,6 @@ import cn.tursom.utils.AsyncHttpRequest
 import java.io.File
 import java.lang.reflect.Field
 import java.lang.reflect.InvocationTargetException
-import java.net.URLClassLoader
 import java.util.*
 import java.util.jar.JarFile
 

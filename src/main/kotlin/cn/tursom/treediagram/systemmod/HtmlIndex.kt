@@ -70,7 +70,7 @@ class HtmlIndex : Mod() {
             val mod = (environment as AdminEnvironment).getMod(user, modId)!!
             if (mod !is HtmlIndex) mod.bottomHandle(
                 content,
-                if (mod.admin) object : Environment by environment {} else environment
+                if (mod.adminMod) object : Environment by environment {} else environment
             )
         }
         content.handleHtml(handle(content, environment))

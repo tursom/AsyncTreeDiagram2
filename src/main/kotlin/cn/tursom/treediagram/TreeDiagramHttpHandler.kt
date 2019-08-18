@@ -4,12 +4,13 @@ import cn.tursom.database.async.AsyncSqlAdapter
 import cn.tursom.database.async.sqlite.AsyncSqliteHelper
 import cn.tursom.treediagram.environment.AdminEnvironment
 import cn.tursom.treediagram.environment.Environment
+import cn.tursom.treediagram.environment.ServiceEnvironment
 import cn.tursom.treediagram.mod.ModInterface
-import cn.tursom.treediagram.mod.ReturnData
-import cn.tursom.treediagram.modloader.ModManager
+import cn.tursom.treediagram.modmanager.ModManager
 import cn.tursom.treediagram.service.Service
-import cn.tursom.treediagram.service.ServiceConnection
-import cn.tursom.treediagram.service.ServiceConnectionDescription
+import cn.tursom.treediagram.servicemanager.ServiceConnection
+import cn.tursom.treediagram.servicemanager.ServiceConnectionDescription
+import cn.tursom.treediagram.servicemanager.ServiceManager
 import cn.tursom.treediagram.user.TokenData
 import cn.tursom.treediagram.user.UserData
 import cn.tursom.treediagram.user.UserUtils
@@ -30,8 +31,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import java.io.File
 import java.io.PrintStream
-import java.io.PrintWriter
-import java.io.StringWriter
 import java.util.logging.FileHandler
 import java.util.logging.Level
 import java.util.logging.Logger
@@ -93,24 +92,7 @@ class TreeDiagramHttpHandler(configPath: String = "config.xml") : HttpHandler<Ne
         override suspend fun getRouterTree(): String = router.suspendToString()
 
         override suspend fun registerService(user: String?, service: Service): Boolean {
-            logger.log(Level.INFO, "user $user register service ${service.serviceId}")
-            if (user == null) {
-                val oldService = systemServiceMap.get(service.serviceId)
-                oldService?.destroyService(this)
-                service.initService(user, this)
-                systemServiceMap.set(service.serviceId, service)
-                return true
-            }
-            var map = serviceMap.get(user)
-            if (map == null) {
-                map = ReadWriteLockHashMap()
-                serviceMap.set(user, map)
-            }
-            val oldService = map.get(service.serviceId)
-            oldService?.destroyService(this)
-            service.initService(user, this)
-            map.set(service.serviceId, service)
-            return true
+            return serviceManager.registerService(user, service)
         }
 
         override suspend fun registerMod(user: String?, mod: ModInterface): Boolean {
@@ -145,14 +127,20 @@ class TreeDiagramHttpHandler(configPath: String = "config.xml") : HttpHandler<Ne
             val service = map.get(serviceId)!!
             val environment = this
             return withTimeout(timeout) {
-                service.receiveMessage(message, environment)
+                service.receiveMessage(
+                    message,
+                    if (service.adminService) environment else this@TreeDiagramHttpHandler.environment
+                )
             }
         }
 
         override suspend fun connect(user: String?, serviceId: String): ServiceConnection? {
             val map = serviceMap.get(user) ?: return null
             val service = map.get(serviceId) ?: return null
-            val newConnection = ServiceConnectionDescription(service, this)
+            val newConnection = ServiceConnectionDescription(
+                service,
+                if (service.adminService) this else this@TreeDiagramHttpHandler.environment
+            )
             newConnection.run()
             return newConnection.clientConnection
         }
@@ -167,6 +155,7 @@ class TreeDiagramHttpHandler(configPath: String = "config.xml") : HttpHandler<Ne
     val environment: Environment = object : Environment by adminEnvironment {}
 
     val modManager = ModManager(adminEnvironment)
+    val serviceManager = ServiceManager(adminEnvironment)
 
     init {
         logger.log(Level.INFO, "from $configPath loaded config: $config")
@@ -183,7 +172,7 @@ class TreeDiagramHttpHandler(configPath: String = "config.xml") : HttpHandler<Ne
             path.forEach { content.addParam(it.first, it.second) }
 
             try {
-                if (mod.admin) mod.bottomHandle(content, adminEnvironment)
+                if (mod.adminMod) mod.bottomHandle(content, adminEnvironment)
                 else mod.bottomHandle(content, environment)
             } catch (e: ModException) {
                 content.responseCode = 500

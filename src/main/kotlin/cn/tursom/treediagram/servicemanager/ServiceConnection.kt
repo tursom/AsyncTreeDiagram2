@@ -1,4 +1,4 @@
-package cn.tursom.treediagram.service
+package cn.tursom.treediagram.servicemanager
 
 import kotlinx.coroutines.channels.Channel
 

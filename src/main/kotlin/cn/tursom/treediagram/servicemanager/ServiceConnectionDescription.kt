@@ -1,6 +1,7 @@
-package cn.tursom.treediagram.service
+package cn.tursom.treediagram.servicemanager
 
 import cn.tursom.treediagram.environment.Environment
+import cn.tursom.treediagram.service.Service
 import cn.tursom.utils.background
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.withTimeout

@@ -1,6 +1,7 @@
 package cn.tursom.treediagram.mod
 
 import cn.tursom.treediagram.environment.Environment
+import cn.tursom.treediagram.service.AdminService
 import cn.tursom.treediagram.service.Service
 import java.io.File
 import java.lang.reflect.Field
@@ -13,10 +14,11 @@ import kotlin.coroutines.suspendCoroutine
 @Suppress("MemberVisibilityCanBePrivate", "unused")
 abstract class Mod : ModInterface, Service {
     override val user: String? = null
-    override val admin: Boolean = super.admin
+    override val adminMod: Boolean = super.adminMod
     override val require = javaClass.getAnnotation(Require::class.java)?.require
     override val version: Int = javaClass.getAnnotation(Version::class.java)?.version ?: 0
     override val apiVersion: Int = javaClass.getAnnotation(ApiVersion::class.java)?.version ?: 0
+    override val adminService: Boolean = javaClass.getAnnotation(AdminService::class.java) != null
 
     /**
      * 模组私有目录

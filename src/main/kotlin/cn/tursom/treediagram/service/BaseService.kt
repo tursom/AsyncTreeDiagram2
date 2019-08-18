@@ -1,10 +1,11 @@
 package cn.tursom.treediagram.service
 
 import cn.tursom.treediagram.environment.Environment
-import cn.tursom.utils.background
+import cn.tursom.treediagram.servicemanager.ServiceConnection
 
 abstract class BaseService() : Service {
     override var user: String? = null
+    override val adminService: Boolean = javaClass.getAnnotation(AdminService::class.java) != null
 
     override suspend fun receiveMessage(message: Any?, environment: Environment): Any? = null
 

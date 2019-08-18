@@ -1,6 +1,7 @@
-package cn.tursom.treediagram.modloader
+package cn.tursom.treediagram.modmanager
 
 import cn.tursom.treediagram.environment.AdminEnvironment
+import cn.tursom.treediagram.environment.AdminModEnvironment
 import cn.tursom.treediagram.environment.Environment
 import cn.tursom.treediagram.mod.ModInterface
 import cn.tursom.treediagram.service.RegisterService
@@ -13,8 +14,8 @@ import cn.tursom.utils.asynclock.WriteLockHashMap
 import kotlinx.coroutines.runBlocking
 import java.util.logging.Logger
 
-class ModManager(val parentEnvironment: AdminEnvironment) : AdminEnvironment by parentEnvironment {
-    override val logger = Logger.getLogger("ModManager")!!
+class ModManager(val parentEnvironment: AdminEnvironment) : AdminModEnvironment by parentEnvironment {
+    private val logger = Logger.getLogger("ModManager")!!
     val systemModMap = WriteLockHashMap<String, ModInterface>()
     val userModMapMap: AsyncRWLockAbstractMap<String, AsyncRWLockAbstractMap<String, ModInterface>> = WriteLockHashMap()
 
