@@ -1,9 +1,8 @@
-package cn.tursom.treediagram.basemod
+package cn.tursom.treediagram.systemmod
 
 import cn.tursom.treediagram.environment.AdminEnvironment
 import cn.tursom.treediagram.environment.Environment
 import cn.tursom.treediagram.mod.*
-import cn.tursom.treediagram.utils.Json.gson
 import cn.tursom.treediagram.utils.ModException
 import cn.tursom.utils.xml.Xml
 import cn.tursom.web.HttpContent

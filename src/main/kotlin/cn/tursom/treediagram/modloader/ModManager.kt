@@ -2,10 +2,11 @@ package cn.tursom.treediagram.modloader
 
 import cn.tursom.treediagram.environment.AdminEnvironment
 import cn.tursom.treediagram.environment.Environment
-import cn.tursom.treediagram.mod.Mod
 import cn.tursom.treediagram.mod.ModInterface
 import cn.tursom.treediagram.service.RegisterService
 import cn.tursom.treediagram.service.Service
+import cn.tursom.treediagram.utils.ListClassLoader
+import cn.tursom.treediagram.utils.ModLoadException
 import cn.tursom.utils.asynclock.AsyncRWLockAbstractMap
 import cn.tursom.utils.asynclock.ReadWriteLockHashMap
 import cn.tursom.utils.asynclock.WriteLockHashMap
@@ -46,24 +47,24 @@ class ModManager(val parentEnvironment: AdminEnvironment) : AdminEnvironment by 
         // 加载系统模组
         runBlocking {
             arrayOf<ModInterface>(
-                cn.tursom.treediagram.basemod.Echo(),
-                cn.tursom.treediagram.basemod.Email(),
-                cn.tursom.treediagram.basemod.GroupEmail(),
-                cn.tursom.treediagram.basemod.MultipleEmail(),
-                cn.tursom.treediagram.basemod.ModLoader(),
-                cn.tursom.treediagram.basemod.Upload(),
-                cn.tursom.treediagram.basemod.GetUploadFileList(),
-                cn.tursom.treediagram.basemod.Register(),
-                cn.tursom.treediagram.basemod.Login(),
-                cn.tursom.treediagram.basemod.Close(),
-                cn.tursom.treediagram.basemod.LoadedMod(),
-                cn.tursom.treediagram.basemod.RouterTree(),
-                cn.tursom.treediagram.basemod.Help(),
-                cn.tursom.treediagram.basemod.ModTree(),
-                cn.tursom.treediagram.basemod.ModRemover(),
-                cn.tursom.treediagram.basemod.Download(),
-                cn.tursom.treediagram.basemod.AutoLoadMod(),
-                cn.tursom.treediagram.basemod.HtmlIndex()
+                cn.tursom.treediagram.systemmod.Echo(),
+                cn.tursom.treediagram.systemmod.Email(),
+                cn.tursom.treediagram.systemmod.GroupEmail(),
+                cn.tursom.treediagram.systemmod.MultipleEmail(),
+                cn.tursom.treediagram.systemmod.ModLoader(),
+                cn.tursom.treediagram.systemmod.Upload(),
+                cn.tursom.treediagram.systemmod.GetUploadFileList(),
+                cn.tursom.treediagram.systemmod.Register(),
+                cn.tursom.treediagram.systemmod.Login(),
+                cn.tursom.treediagram.systemmod.Close(),
+                cn.tursom.treediagram.systemmod.LoadedMod(),
+                cn.tursom.treediagram.systemmod.RouterTree(),
+                cn.tursom.treediagram.systemmod.Help(),
+                cn.tursom.treediagram.systemmod.ModTree(),
+                cn.tursom.treediagram.systemmod.ModRemover(),
+                cn.tursom.treediagram.systemmod.Download(),
+                cn.tursom.treediagram.systemmod.AutoLoadMod(),
+                cn.tursom.treediagram.systemmod.HtmlIndex()
             ).forEach {
                 loadMod(it)
             }
@@ -107,6 +108,15 @@ class ModManager(val parentEnvironment: AdminEnvironment) : AdminEnvironment by 
         //输出日志信息
         logger.info("loading mod: $mod")
 
+        mod.require?.forEach {
+            val parentMod = systemModMap.get(it.modId) ?: throw ModLoadException("mod ${it.modId} mot found")
+            if (parentMod.apiVersion != it.apiVersion)
+                throw ModLoadException("mod ${it.modId} api version is ${parentMod.apiVersion}, but ${mod.modId} require ${it.apiVersion}")
+            if (parentMod.version < it.version)
+                throw ModLoadException("mod ${it.modId} version is ${parentMod.version}, but ${mod.modId} require ${it.version}")
+            (mod.javaClass.classLoader as ListClassLoader).addParent(parentMod.javaClass.classLoader)
+        }
+
         //记得销毁被替代的模组
         removeMod(mod)
 
@@ -142,13 +152,23 @@ class ModManager(val parentEnvironment: AdminEnvironment) : AdminEnvironment by 
      */
     suspend fun loadMod(user: String, mod: ModInterface): String {
         // 输出日志信息
-        logger.info("loading mod: ${mod::class.java.name}\nuser: $user")
+        logger.info("user: $user loading mod: ${mod::class.java.name}")
+
+        mod.require?.forEach {
+            val parentMod = systemModMap.get(it.modId) ?: userModMapMap.get(user)?.get(it.modId)
+            ?: throw ModLoadException("mod ${it.modId} mot found")
+            if (parentMod.apiVersion != it.apiVersion)
+                throw ModLoadException("mod ${it.modId} api version is ${parentMod.apiVersion}, but ${mod.modId} require ${it.apiVersion}")
+            if (parentMod.version < it.version)
+                throw ModLoadException("mod ${it.modId} version is ${parentMod.version}, but ${mod.modId} require ${it.version}")
+            (mod.javaClass.classLoader as ListClassLoader).addParent(parentMod.javaClass.classLoader)
+        }
 
         // 记得销毁被替代的模组
         removeMod(user, mod)
 
         // 调用模组的初始化函数
-        mod.init(user, environment)
+        mod.init(user, adminEnvironment)
 
         // 将模组的信息加载到系统中
         val userModMap = (userModMapMap.get(user) ?: run {
@@ -337,3 +357,4 @@ class ModManager(val parentEnvironment: AdminEnvironment) : AdminEnvironment by 
         }
     }
 }
+

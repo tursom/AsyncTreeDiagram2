@@ -4,15 +4,18 @@ import cn.tursom.treediagram.environment.Environment
 import cn.tursom.treediagram.utils.Json
 import cn.tursom.treediagram.utils.ModException
 import cn.tursom.web.HttpContent
+import java.io.PrintWriter
+import java.io.StringWriter
 import java.net.URLDecoder
 import java.net.URLEncoder
 
 interface ModInterface {
+    val require: Array<out RequireInfo>? get() = javaClass.getAnnotation(Require::class.java)?.require
     val admin: Boolean get() = javaClass.getAnnotation(AdminMod::class.java) != null
     val prettyJson: Boolean get() = false
     val user: String?
-    val version: Int get() = 0
-    val apiVersion: Int get() = 0
+    val version: Int get() = javaClass.getAnnotation(Version::class.java)?.version ?: 0
+    val apiVersion: Int get() = javaClass.getAnnotation(ApiVersion::class.java)?.version ?: 0
     val gson get() = Json.gson
     val prettyGson get() = Json.prettyGson
 
@@ -74,7 +77,9 @@ interface ModInterface {
         } catch (e: ModException) {
             ReturnData(false, e.message)
         } catch (e: Exception) {
-            ReturnData(false, "${e.javaClass}: ${e.message}\nat ${e.stackTrace[0]}")
+            val writer = StringWriter()
+            e.printStackTrace(PrintWriter(writer))
+            ReturnData(false, writer)
         }
         content.handleJson(ret)
     }

@@ -14,6 +14,9 @@ import kotlin.coroutines.suspendCoroutine
 abstract class Mod : ModInterface, Service {
     override val user: String? = null
     override val admin: Boolean = super.admin
+    override val require = javaClass.getAnnotation(Require::class.java)?.require
+    override val version: Int = javaClass.getAnnotation(Version::class.java)?.version ?: 0
+    override val apiVersion: Int = javaClass.getAnnotation(ApiVersion::class.java)?.version ?: 0
 
     /**
      * 模组私有目录

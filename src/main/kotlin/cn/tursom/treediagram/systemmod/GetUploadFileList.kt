@@ -1,9 +1,8 @@
-package cn.tursom.treediagram.basemod
+package cn.tursom.treediagram.systemmod
 
 import cn.tursom.treediagram.environment.Environment
 import cn.tursom.treediagram.mod.AbsoluteModPath
 import cn.tursom.treediagram.mod.Mod
-import cn.tursom.treediagram.mod.Mod.Companion.uploadRootPath
 import cn.tursom.treediagram.mod.ModPath
 import cn.tursom.web.HttpContent
 import java.io.File

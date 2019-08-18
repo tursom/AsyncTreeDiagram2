@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id 'org.jetbrains.kotlin.jvm' version '1.3.41'
+    id 'application'
 }
 
 group 'cn.tursom'
@@ -54,4 +55,19 @@ compileKotlin {
 }
 compileTestKotlin {
     kotlinOptions.jvmTarget = "1.8"
+}
+
+application {
+    mainClassName = "cn.tursom.MainKt"
+}
+
+//打包源代码
+task sourcesJar(type: Jar, dependsOn: classes) {
+    //classifier = 'sources'
+    getArchiveClassifier().set("sources")
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives sourcesJar
 }

@@ -1,4 +1,4 @@
-package cn.tursom.treediagram.basemod
+package cn.tursom.treediagram.systemmod
 
 import cn.tursom.treediagram.datastruct.GroupEmailData
 import cn.tursom.treediagram.environment.Environment

@@ -1,8 +1,10 @@
 package cn.tursom.treediagram.modloader
 
 import cn.tursom.treediagram.mod.ModInterface
+import cn.tursom.treediagram.utils.ListClassLoader
 import cn.tursom.utils.AsyncHttpRequest
 import java.io.File
+import java.lang.reflect.Field
 import java.lang.reflect.InvocationTargetException
 import java.net.URLClassLoader
 import java.util.*
@@ -57,6 +59,12 @@ class ModLoader private constructor(
     }
 
     companion object {
+        val parentLoader: Field = ClassLoader::class.java.getDeclaredField("parent")
+
+        init {
+            parentLoader.isAccessible = true
+        }
+
         @JvmStatic
         fun getClassName(jarPath: String): List<String> {
             val myClassName = ArrayList<String>()
@@ -74,7 +82,8 @@ class ModLoader private constructor(
             user: String? = null,
             rootPath: String? = null,
             loadInstantly: Boolean = false,
-            modManager: ModManager
+            modManager: ModManager,
+            parentClassLoader: ClassLoader = Thread.currentThread().contextClassLoader
         ): ModLoader {
             val file = if (rootPath == null) {
                 configData.path
@@ -91,10 +100,7 @@ class ModLoader private constructor(
             } else {
                 file
             }!!
-            val classLoader = URLClassLoader(
-                arrayOf(File(jarFile).toURI().toURL()),
-                Thread.currentThread().contextClassLoader
-            )
+            val classLoader = ListClassLoader(arrayOf(File(jarFile).toURI().toURL()), parentClassLoader)
             val classList = configData.classname ?: getClassName(jarFile)
             val loader = ModLoader(user, modManager, classList, classLoader)
             if (loadInstantly) {

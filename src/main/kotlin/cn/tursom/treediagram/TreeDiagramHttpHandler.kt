@@ -5,6 +5,7 @@ import cn.tursom.database.async.sqlite.AsyncSqliteHelper
 import cn.tursom.treediagram.environment.AdminEnvironment
 import cn.tursom.treediagram.environment.Environment
 import cn.tursom.treediagram.mod.ModInterface
+import cn.tursom.treediagram.mod.ReturnData
 import cn.tursom.treediagram.modloader.ModManager
 import cn.tursom.treediagram.service.Service
 import cn.tursom.treediagram.service.ServiceConnection
@@ -13,6 +14,7 @@ import cn.tursom.treediagram.user.TokenData
 import cn.tursom.treediagram.user.UserData
 import cn.tursom.treediagram.user.UserUtils
 import cn.tursom.treediagram.utils.Config
+import cn.tursom.treediagram.utils.ModException
 import cn.tursom.treediagram.utils.WrongTokenException
 import cn.tursom.utils.asynclock.AsyncRWLockAbstractMap
 import cn.tursom.utils.asynclock.ReadWriteLockHashMap
@@ -28,12 +30,15 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import java.io.File
 import java.io.PrintStream
+import java.io.PrintWriter
+import java.io.StringWriter
 import java.util.logging.FileHandler
 import java.util.logging.Level
 import java.util.logging.Logger
 
 class TreeDiagramHttpHandler(configPath: String = "config.xml") : HttpHandler<NettyHttpContent> {
     private val secretKey: Int = randomInt(-999999999, 999999999)
+    private val systemServiceMap = ReadWriteLockHashMap<String, Service>()
     private val serviceMap = ReadWriteLockHashMap<String?, AsyncRWLockAbstractMap<String, Service>>()
     val router = SuspendRouter<ModInterface>()
     val config = run {
@@ -88,11 +93,19 @@ class TreeDiagramHttpHandler(configPath: String = "config.xml") : HttpHandler<Ne
         override suspend fun getRouterTree(): String = router.suspendToString()
 
         override suspend fun registerService(user: String?, service: Service): Boolean {
-            val map = serviceMap.get(user) ?: suspend {
-                val newMap = ReadWriteLockHashMap<String, Service>()
-                serviceMap.set(user, newMap)
-                newMap
-            }()
+            logger.log(Level.INFO, "user $user register service ${service.serviceId}")
+            if (user == null) {
+                val oldService = systemServiceMap.get(service.serviceId)
+                oldService?.destroyService(this)
+                service.initService(user, this)
+                systemServiceMap.set(service.serviceId, service)
+                return true
+            }
+            var map = serviceMap.get(user)
+            if (map == null) {
+                map = ReadWriteLockHashMap()
+                serviceMap.set(user, map)
+            }
             val oldService = map.get(service.serviceId)
             oldService?.destroyService(this)
             service.initService(user, this)
@@ -131,7 +144,7 @@ class TreeDiagramHttpHandler(configPath: String = "config.xml") : HttpHandler<Ne
         }
 
         override suspend fun call(user: String?, serviceId: String, message: Any?, timeout: Long): Any? {
-            val map = serviceMap.get(user)!!
+            val map = if (user != null) serviceMap.get(user) ?: systemServiceMap else systemServiceMap
             val service = map.get(serviceId)!!
             val environment = this
             return withTimeout(timeout) {
@@ -171,6 +184,16 @@ class TreeDiagramHttpHandler(configPath: String = "config.xml") : HttpHandler<Ne
             try {
                 if (mod.admin) mod.bottomHandle(content, adminEnvironment)
                 else mod.bottomHandle(content, environment)
+            } catch (e: ModException) {
+                content.responseCode = 500
+                content.reset()
+                //e.printStackTrace(PrintStream(content.responseBody))
+                //content.write("${e.javaClass}: ${e.message}")
+                logger.log(Level.WARNING, "${e.javaClass}: ${e.message}")
+                content.responseCode = 500
+                content.reset()
+                e.printStackTrace(PrintStream(content.responseBody))
+                content.finish()
             } catch (e: Throwable) {
                 e.printStackTrace()
                 content.responseCode = 500

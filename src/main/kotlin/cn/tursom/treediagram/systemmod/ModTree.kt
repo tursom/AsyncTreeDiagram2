@@ -1,4 +1,4 @@
-package cn.tursom.treediagram.basemod
+package cn.tursom.treediagram.systemmod
 
 import cn.tursom.treediagram.environment.AdminEnvironment
 import cn.tursom.treediagram.environment.Environment
