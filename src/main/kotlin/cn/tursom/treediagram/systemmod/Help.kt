@@ -25,7 +25,7 @@ class Help : Mod() {
             null
         }
         val modName = content["modId"] ?: "Help"
-        val mod = modManager.findMod(modName, user) ?: return null
+        val mod = modManager.getMod(user, modName) ?: return null
         val buff = modMap[user to mod]
         val buffStr = buff?.get()
         if (buffStr != null) {
@@ -38,7 +38,7 @@ class Help : Mod() {
         if (help.isNotEmpty()) sb.append(help)
         sb.append("\nid:")
         sb.append("\n|- ${mod.modId}")
-        if (modManager.findMod(mod.simpModId) === mod) {
+        if (modManager.getMod(null, mod.simpModId) === mod) {
             sb.append("\n|- ${mod.simpModId}")
         }
         sb.append("\nrouters:")

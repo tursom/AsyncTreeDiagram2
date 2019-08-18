@@ -18,7 +18,7 @@ class LoadedMod : Mod() {
 
     override suspend fun receiveMessage(message: Any?, environment: Environment): Any? {
         environment as AdminEnvironment
-        if (cacheTime < environment.modManager.lastChangeTime) {
+        if (cacheTime < environment.modManager.modEnvLastChangeTime) {
             val modManager = environment.modManager
             val pathSet = ArrayList<Pair<String, Set<String>>>()
             modManager.userModMapMap.forEach { s, asyncRWLockAbstractMap ->

@@ -19,12 +19,13 @@ class ModManager(val parentEnvironment: AdminEnvironment) : AdminModEnvironment 
     override val modManager: ModManager = this
     override val router: SuspendRouter<ModInterface> = parentEnvironment.router
     private val logger = Logger.getLogger("ModManager")!!
-    val systemModMap = WriteLockHashMap<String, ModInterface>()
-    val userModMapMap: AsyncRWLockAbstractMap<String, AsyncRWLockAbstractMap<String, ModInterface>> = WriteLockHashMap()
+    override val systemModMap = WriteLockHashMap<String, ModInterface>()
+    override val userModMapMap: AsyncRWLockAbstractMap<String, AsyncRWLockAbstractMap<String, ModInterface>> =
+        WriteLockHashMap()
     private val environment: Environment = object : Environment by parentEnvironment {}
 
     @Volatile
-    var lastChangeTime: Long = System.currentTimeMillis()
+    override var modEnvLastChangeTime: Long = System.currentTimeMillis()
 
     override suspend fun getMod(user: String?, modId: String) = if (user != null) {
         modManager.userModMapMap.get(user)?.get(modId)
@@ -67,7 +68,7 @@ class ModManager(val parentEnvironment: AdminEnvironment) : AdminModEnvironment 
         }
     }
 
-    suspend fun getSystemMod(): Set<String> {
+    override suspend fun getSystemMod(): Set<String> {
         val pathSet = HashSet<String>()
         systemModMap.forEach { _: String, u: ModInterface ->
             u.routeList.forEach {
@@ -77,7 +78,7 @@ class ModManager(val parentEnvironment: AdminEnvironment) : AdminModEnvironment 
         return pathSet
     }
 
-    suspend fun getUserMod(user: String?): Set<String>? {
+    override suspend fun getUserMod(user: String?): Set<String>? {
         val pathSet = HashSet<String>()
         userModMapMap.get(user ?: return null)?.forEach { _: String, u: ModInterface ->
             u.routeList.forEach {
@@ -86,14 +87,6 @@ class ModManager(val parentEnvironment: AdminEnvironment) : AdminModEnvironment 
         }
         return pathSet
 
-    }
-
-    suspend fun findMod(modName: String, user: String? = null): ModInterface? {
-        return if (user != null) {
-            (userModMapMap.get(user) ?: return null).get(modName)
-        } else {
-            systemModMap.get(modName)
-        }
     }
 
     /**
@@ -132,7 +125,7 @@ class ModManager(val parentEnvironment: AdminEnvironment) : AdminModEnvironment 
             addRoute("/$it", mod)
         }
 
-        lastChangeTime = System.currentTimeMillis()
+        modEnvLastChangeTime = System.currentTimeMillis()
 
         if (mod is Service && mod.javaClass.getAnnotation(RegisterService::class.java) != null) {
             try {
@@ -181,7 +174,7 @@ class ModManager(val parentEnvironment: AdminEnvironment) : AdminModEnvironment 
             addRoute("/user/$user/$it", mod)
         }
 
-        lastChangeTime = System.currentTimeMillis()
+        modEnvLastChangeTime = System.currentTimeMillis()
 
         if (mod is Service && mod.javaClass.getAnnotation(RegisterService::class.java) != null) {
             try {
@@ -224,7 +217,7 @@ class ModManager(val parentEnvironment: AdminEnvironment) : AdminModEnvironment 
                 router.delRoute(route)
             }
         }
-        lastChangeTime = System.currentTimeMillis()
+        modEnvLastChangeTime = System.currentTimeMillis()
 
         if (mod is Service) {
             try {
@@ -260,7 +253,7 @@ class ModManager(val parentEnvironment: AdminEnvironment) : AdminModEnvironment 
                 router.delRoute(route)
             }
         }
-        lastChangeTime = System.currentTimeMillis()
+        modEnvLastChangeTime = System.currentTimeMillis()
 
         if (mod is Service) {
             try {
@@ -286,7 +279,7 @@ class ModManager(val parentEnvironment: AdminEnvironment) : AdminModEnvironment 
     private var systemTreeCache: String = ""
 
     private suspend fun getSystemTree(): String {
-        if (lastChangeTime < systemTreeCacheTime) {
+        if (modEnvLastChangeTime < systemTreeCacheTime) {
             return systemTreeCache
         }
         val sb = StringBuilder()
@@ -308,7 +301,7 @@ class ModManager(val parentEnvironment: AdminEnvironment) : AdminModEnvironment 
         val cachePair = userCache.get(user)
         if (cachePair != null) {
             val (time, cache) = cachePair
-            if (time > lastChangeTime) {
+            if (time > modEnvLastChangeTime) {
                 return cache
             }
         }
@@ -326,10 +319,10 @@ class ModManager(val parentEnvironment: AdminEnvironment) : AdminModEnvironment 
     }
 
 
-    suspend fun getModTree(user: String?): String {
+    override suspend fun getModTree(user: String?): String {
         return when (user) {
             null -> {
-                if (lastChangeTime < cacheTime) return cache
+                if (modEnvLastChangeTime < cacheTime) return cache
 
                 val sb = StringBuilder()
                 sb.append(getSystemTree())

@@ -25,20 +25,18 @@ class ModRemover : Mod() {
         val user = token.usr!!
         val modName = content["modName"]!!
         val system = content["system"] == "true"
+        val modUser = if (system) {
+            if (token.lev!!.contains("admin")) {
+                null
+            } else {
+                throw ModException("用户无该权限")
+            }
+        } else {
+            user
+        }
         modManager.removeMod(
-            modManager.findMod(
-                modName,
-                if (system) {
-                    if (token.lev!!.contains("admin")) {
-                        null
-                    } else {
-                        throw ModException("用户无该权限")
-                    }
-                } else {
-                    user
-                }
-            )
-                ?: throw ModException("无法找到模组：$modName")
+            modUser,
+            modManager.getMod(modUser, modName) ?: throw ModException("无法找到模组：$modName")
         )
         return modName
     }

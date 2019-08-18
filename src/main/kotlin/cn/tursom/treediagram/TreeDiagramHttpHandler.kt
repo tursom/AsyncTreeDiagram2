@@ -4,12 +4,10 @@ import cn.tursom.database.async.AsyncSqlAdapter
 import cn.tursom.database.async.sqlite.AsyncSqliteHelper
 import cn.tursom.treediagram.environment.AdminEnvironment
 import cn.tursom.treediagram.environment.Environment
-import cn.tursom.treediagram.environment.ServiceEnvironment
 import cn.tursom.treediagram.mod.ModInterface
 import cn.tursom.treediagram.modmanager.ModManager
 import cn.tursom.treediagram.service.Service
 import cn.tursom.treediagram.servicemanager.ServiceConnection
-import cn.tursom.treediagram.servicemanager.ServiceConnectionDescription
 import cn.tursom.treediagram.servicemanager.ServiceManager
 import cn.tursom.treediagram.user.TokenData
 import cn.tursom.treediagram.user.UserData
@@ -28,7 +26,6 @@ import cn.tursom.web.HttpHandler
 import cn.tursom.web.netty.NettyHttpContent
 import cn.tursom.web.router.SuspendRouter
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeout
 import java.io.File
 import java.io.PrintStream
 import java.util.logging.FileHandler
@@ -88,6 +85,9 @@ class TreeDiagramHttpHandler(configPath: String = "config.xml") : HttpHandler<Ne
         override val modManager: ModManager get() = this@TreeDiagramHttpHandler.modManager
         override val config: Config = this@TreeDiagramHttpHandler.config
         override val fileHandler: FileHandler = this@TreeDiagramHttpHandler.fileHandler
+        override val modEnvLastChangeTime: Long get() = modManager.modEnvLastChangeTime
+        override val systemModMap: AsyncRWLockAbstractMap<String, ModInterface> get() = modManager.systemModMap
+        override val userModMapMap get() = modManager.userModMapMap
 
         override suspend fun getRouterTree(): String = router.suspendToString()
 
@@ -104,14 +104,12 @@ class TreeDiagramHttpHandler(configPath: String = "config.xml") : HttpHandler<Ne
         }
 
         override suspend fun getMod(user: String?, modId: String) = modManager.getMod(user, modId)
+        override suspend fun getSystemMod(): Set<String> = modManager.getSystemMod()
+        override suspend fun getUserMod(user: String?): Set<String>? = modManager.getUserMod(user)
+        override suspend fun getModTree(user: String?): String = modManager.getModTree(user)
 
-        override suspend fun registerMod(user: String?, mod: ModInterface): Boolean {
-            return modManager.registerMod(user, mod)
-        }
-
-        override suspend fun removeMod(user: String?, mod: ModInterface): Boolean {
-            return modManager.removeMod(user, mod)
-        }
+        override suspend fun registerMod(user: String?, mod: ModInterface): Boolean = modManager.registerMod(user, mod)
+        override suspend fun removeMod(user: String?, mod: ModInterface): Boolean = modManager.removeMod(user, mod)
 
         override suspend fun registerService(user: String?, service: Service): Boolean {
             return serviceManager.registerService(user, service)
