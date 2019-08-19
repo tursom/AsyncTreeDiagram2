@@ -5,7 +5,8 @@ import cn.tursom.treediagram.utils.Config
 import cn.tursom.web.HttpContent
 import java.util.logging.Logger
 
-interface ServerEnvironment : LoggerEnvironment {
+interface ServerEnvironment {
+    val logger: Logger
     val config: Config
 
     suspend fun checkToken(token: String): TokenData

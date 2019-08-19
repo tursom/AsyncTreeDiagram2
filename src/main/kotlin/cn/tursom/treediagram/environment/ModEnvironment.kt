@@ -1,6 +1,9 @@
 package cn.tursom.treediagram.environment
 
-interface ModEnvironment : LoggerEnvironment {
+import java.util.logging.Logger
+
+interface ModEnvironment  {
+    val logger: Logger
     val modEnvLastChangeTime: Long
     suspend fun getModTree(user: String?): String
 }

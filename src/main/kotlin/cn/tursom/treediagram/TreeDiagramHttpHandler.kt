@@ -24,7 +24,6 @@ import cn.tursom.web.ExceptionContent
 import cn.tursom.web.HttpContent
 import cn.tursom.web.HttpHandler
 import cn.tursom.web.netty.NettyHttpContent
-import cn.tursom.web.router.SuspendRouter
 import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.io.PrintStream
