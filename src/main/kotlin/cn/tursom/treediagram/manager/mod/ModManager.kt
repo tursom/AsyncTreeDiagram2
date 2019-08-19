@@ -1,7 +1,7 @@
-package cn.tursom.treediagram.modmanager
+package cn.tursom.treediagram.manager.mod
 
 import cn.tursom.treediagram.environment.AdminEnvironment
-import cn.tursom.treediagram.environment.AdminModEnvironment
+import cn.tursom.treediagram.environment.ModManage
 import cn.tursom.treediagram.environment.Environment
 import cn.tursom.treediagram.mod.ModInterface
 import cn.tursom.treediagram.service.RegisterService
@@ -15,9 +15,11 @@ import cn.tursom.web.router.SuspendRouter
 import kotlinx.coroutines.runBlocking
 import java.util.logging.Logger
 
-class ModManager(val parentEnvironment: AdminEnvironment) : AdminModEnvironment {
+class ModManager(
+    val parentEnvironment: AdminEnvironment,
+    val router: SuspendRouter<ModInterface>
+) : ModManage {
     override val modManager: ModManager = this
-    override val router: SuspendRouter<ModInterface> = SuspendRouter()
     override val logger = Logger.getLogger("ModManager")!!
     override val systemModMap: AsyncRWLockAbstractMap<String, ModInterface> = WriteLockHashMap()
     override val userModMapMap: AsyncRWLockAbstractMap<String, AsyncRWLockAbstractMap<String, ModInterface>> =
@@ -68,8 +70,6 @@ class ModManager(val parentEnvironment: AdminEnvironment) : AdminModEnvironment 
         return true
     }
 
-    override suspend fun getRouterTree(): String = router.suspendToString()
-
     override suspend fun getSystemMod(): Set<String> {
         val pathSet = HashSet<String>()
         systemModMap.forEach { _: String, u: ModInterface ->
@@ -95,7 +95,7 @@ class ModManager(val parentEnvironment: AdminEnvironment) : AdminModEnvironment 
      * 加载模组
      * 将模组的注册信息加载进系统中
      */
-    internal suspend fun loadMod(mod: ModInterface) {
+    private suspend fun loadMod(mod: ModInterface) {
         //输出日志信息
         logger.info("loading mod: $mod")
 
@@ -109,7 +109,7 @@ class ModManager(val parentEnvironment: AdminEnvironment) : AdminModEnvironment 
         }
 
         //记得销毁被替代的模组
-        removeMod(mod)
+        removeSystemMod(mod)
 
         //调用模组的初始化函数
         mod.init(null, parentEnvironment)
@@ -118,14 +118,7 @@ class ModManager(val parentEnvironment: AdminEnvironment) : AdminModEnvironment 
         systemModMap.set(mod.modId, mod)
         systemModMap.set(mod.modId.split('.').last(), mod)
 
-
-        mod.routeList.forEach {
-            addRoute("/mod/system/$it", mod)
-        }
-
-        mod.absRouteList.forEach {
-            addRoute("/$it", mod)
-        }
+        parentEnvironment.addRouter(mod, null)
 
         modEnvLastChangeTime = System.currentTimeMillis()
 
@@ -171,10 +164,7 @@ class ModManager(val parentEnvironment: AdminEnvironment) : AdminModEnvironment 
         userModMap.set(mod.modId, mod)
         userModMap.set(mod.simpModId, mod)
 
-        mod.routeList.forEach {
-            addRoute("/mod/user/$user/$it", mod)
-            addRoute("/user/$user/$it", mod)
-        }
+        parentEnvironment.addRouter(mod, user)
 
         modEnvLastChangeTime = System.currentTimeMillis()
 
@@ -192,10 +182,12 @@ class ModManager(val parentEnvironment: AdminEnvironment) : AdminModEnvironment 
      * 卸载模组
      */
     override suspend fun removeMod(user: String?, mod: ModInterface): Boolean {
-        if (user == null) {
-            removeMod(mod)
-            return true
-        }
+        val rUser = mod.user ?: user
+        return if (rUser != null) removeUserMod(mod, rUser)
+        else removeSystemMod(mod)
+    }
+
+    private suspend fun removeUserMod(mod: ModInterface, user: String): Boolean {
         logger.info("user $user try remove mod: $mod")
 
         val userModMap = userModMapMap.get(user) ?: return false
@@ -211,14 +203,9 @@ class ModManager(val parentEnvironment: AdminEnvironment) : AdminModEnvironment 
             if (modObject === userModMap.get(modObject.modId.split('.').last()))
                 userModMap.remove(modObject.modId.split('.').last())
         }
-        modObject.routeList.forEach {
-            val route = "/mod/user/$user/$it"
-            logger.info("try delete route $route")
-            if (modObject === router.get(route).first) {
-                logger.info("delete route $route")
-                router.delRoute(route)
-            }
-        }
+
+        parentEnvironment.removeRouter(modObject, user)
+
         modEnvLastChangeTime = System.currentTimeMillis()
 
         if (mod is Service) {
@@ -233,9 +220,9 @@ class ModManager(val parentEnvironment: AdminEnvironment) : AdminModEnvironment 
     /**
      * 卸载模组
      */
-    suspend fun removeMod(mod: ModInterface) {
+    private suspend fun removeSystemMod(mod: ModInterface): Boolean {
         logger.info("try remove system mod: $mod")
-        val modObject = systemModMap.get(mod.modId) ?: return
+        val modObject = systemModMap.get(mod.modId) ?: return false
         logger.info("remove system mod: $mod")
         try {
             modObject.destroy(parentEnvironment)
@@ -247,14 +234,9 @@ class ModManager(val parentEnvironment: AdminEnvironment) : AdminModEnvironment 
             if (modObject === systemModMap.get(modObject.modId.split('.').last()))
                 systemModMap.remove(modObject.modId.split('.').last())
         }
-        modObject.routeList.forEach {
-            val route = "/mod/system/$it"
-            logger.info("try delete route $route")
-            if (modObject === router.get(route).first) {
-                logger.info("delete route $route")
-                router.delRoute(route)
-            }
-        }
+
+        parentEnvironment.removeRouter(modObject, null)
+
         modEnvLastChangeTime = System.currentTimeMillis()
 
         if (mod is Service) {
@@ -263,10 +245,7 @@ class ModManager(val parentEnvironment: AdminEnvironment) : AdminModEnvironment 
             } catch (e: Exception) {
             }
         }
-    }
-
-    private suspend fun addRoute(fullRoute: String, mod: ModInterface) {
-        router.set(fullRoute, mod)
+        return true
     }
 
     // 模组树部分

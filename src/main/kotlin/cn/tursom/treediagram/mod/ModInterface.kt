@@ -11,7 +11,8 @@ import java.net.URLEncoder
 
 interface ModInterface {
     val require: Array<out RequireInfo>? get() = javaClass.getAnnotation(Require::class.java)?.require
-    val adminMod: Boolean get() = javaClass.getAnnotation(AdminMod::class.java) != null
+    //val adminMod: Boolean get() = javaClass.getAnnotation(AdminMod::class.java) != null
+    val modPermission: ModPermission? get() = javaClass.getAnnotation(AdminMod::class.java)?.permission
     val prettyJson: Boolean get() = false
     val user: String?
     val version: Int get() = javaClass.getAnnotation(Version::class.java)?.version ?: 0

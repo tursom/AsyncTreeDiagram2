@@ -64,15 +64,6 @@ class HtmlIndex : Mod() {
     }
 
     override suspend fun bottomHandle(content: HttpContent, environment: Environment) {
-        val modId = content["mod"]
-        if (modId != null) {
-            val user = content["user"]
-            val mod = (environment as AdminEnvironment).getMod(user, modId)!!
-            if (mod !is HtmlIndex) mod.bottomHandle(
-                content,
-                if (mod.adminMod) object : Environment by environment {} else environment
-            )
-        }
         content.handleHtml(handle(content, environment))
     }
 }

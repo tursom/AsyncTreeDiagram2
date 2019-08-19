@@ -6,7 +6,7 @@ import cn.tursom.treediagram.mod.AbsoluteModPath
 import cn.tursom.treediagram.mod.AdminMod
 import cn.tursom.treediagram.mod.Mod
 import cn.tursom.treediagram.mod.ModPath
-import cn.tursom.treediagram.modmanager.ClassData
+import cn.tursom.treediagram.manager.mod.ClassData
 import cn.tursom.treediagram.utils.ModException
 import cn.tursom.utils.bytebuffer.fromJson
 import cn.tursom.web.HttpContent
@@ -40,7 +40,7 @@ class ModLoader : Mod() {
         val token = environment.token(content)
         val modData = content["modData"]
         val modLoader = if (modData != null) {
-            cn.tursom.treediagram.modmanager.ModLoader.getModLoader(
+            cn.tursom.treediagram.manager.mod.ModLoader.getModLoader(
                 gson.fromJson(modData),
                 if (content["system"] != "true") {
                     token.usr
@@ -55,7 +55,7 @@ class ModLoader : Mod() {
             val className = content["className"]
             val jarPath = content["jarPath"]
             jarPath ?: throw ModException("no mod get")
-            cn.tursom.treediagram.modmanager.ModLoader.getModLoader(
+            cn.tursom.treediagram.manager.mod.ModLoader.getModLoader(
                 ClassData(
                     jarPath,
                     jarPath,

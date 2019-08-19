@@ -1,7 +1,7 @@
-package cn.tursom.treediagram.servicemanager
+package cn.tursom.treediagram.manager.service
 
 import cn.tursom.treediagram.environment.AdminEnvironment
-import cn.tursom.treediagram.environment.AdminServiceEnvironment
+import cn.tursom.treediagram.environment.ServiceManage
 import cn.tursom.treediagram.environment.Environment
 import cn.tursom.treediagram.service.ServiceConnection
 import cn.tursom.treediagram.service.Service
@@ -10,7 +10,7 @@ import cn.tursom.utils.asynclock.ReadWriteLockHashMap
 import kotlinx.coroutines.withTimeout
 import java.util.logging.Level
 
-class ServiceManager(val adminEnvironment: AdminEnvironment) : AdminServiceEnvironment {
+class ServiceManager(val adminEnvironment: AdminEnvironment) : ServiceManage {
     override val logger = adminEnvironment.logger
     private val environment = object : Environment by adminEnvironment {}
     private val systemServiceMap: AsyncRWLockAbstractMap<String, Service> = ReadWriteLockHashMap()

@@ -1,4 +1,4 @@
-package cn.tursom.treediagram.servicemanager
+package cn.tursom.treediagram.manager.service
 
 import cn.tursom.treediagram.environment.Environment
 import cn.tursom.treediagram.service.Service

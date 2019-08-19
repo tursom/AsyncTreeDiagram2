@@ -1,6 +1,6 @@
-package cn.tursom.treediagram.modmanager
+package cn.tursom.treediagram.manager.mod
 
-import cn.tursom.treediagram.environment.AdminModEnvironment
+import cn.tursom.treediagram.environment.ModManage
 import cn.tursom.treediagram.mod.ModInterface
 import cn.tursom.treediagram.utils.ListClassLoader
 import cn.tursom.utils.AsyncHttpRequest
@@ -20,7 +20,7 @@ import java.util.jar.JarFile
  */
 class ModLoader private constructor(
     private val user: String? = null,
-    private val modManager: AdminModEnvironment,
+    private val modManager: ModManage,
     private val className: List<String>,
     private val classLoader: ClassLoader
 ) {
@@ -78,7 +78,7 @@ class ModLoader private constructor(
             user: String? = null,
             rootPath: String? = null,
             loadInstantly: Boolean = false,
-            modManager: AdminModEnvironment,
+            modManager: ModManage,
             parentClassLoader: ClassLoader = Thread.currentThread().contextClassLoader
         ): ModLoader {
             val file = if (rootPath == null) {

@@ -2,13 +2,14 @@ package cn.tursom.treediagram
 
 import cn.tursom.database.async.AsyncSqlAdapter
 import cn.tursom.database.async.sqlite.AsyncSqliteHelper
-import cn.tursom.treediagram.environment.AdminEnvironment
-import cn.tursom.treediagram.environment.Environment
+import cn.tursom.treediagram.environment.*
+import cn.tursom.treediagram.manager.mod.ModManager
+import cn.tursom.treediagram.manager.router.RouterManager
+import cn.tursom.treediagram.manager.service.ServiceManager
 import cn.tursom.treediagram.mod.ModInterface
-import cn.tursom.treediagram.modmanager.ModManager
+import cn.tursom.treediagram.mod.ModPermission
 import cn.tursom.treediagram.service.Service
 import cn.tursom.treediagram.service.ServiceConnection
-import cn.tursom.treediagram.servicemanager.ServiceManager
 import cn.tursom.treediagram.user.TokenData
 import cn.tursom.treediagram.user.UserData
 import cn.tursom.treediagram.user.UserUtils
@@ -16,8 +17,6 @@ import cn.tursom.treediagram.utils.Config
 import cn.tursom.treediagram.utils.ModException
 import cn.tursom.treediagram.utils.WrongTokenException
 import cn.tursom.utils.asynclock.AsyncLockMap
-import cn.tursom.utils.asynclock.AsyncRWLockAbstractMap
-import cn.tursom.utils.asynclock.ReadWriteLockHashMap
 import cn.tursom.utils.background
 import cn.tursom.utils.randomInt
 import cn.tursom.utils.xml.Xml
@@ -35,8 +34,6 @@ import java.util.logging.Logger
 
 class TreeDiagramHttpHandler(configPath: String = "config.xml") : HttpHandler<NettyHttpContent> {
     private val secretKey: Int = randomInt(-999999999, 999999999)
-    private val systemServiceMap = ReadWriteLockHashMap<String, Service>()
-    private val serviceMap = ReadWriteLockHashMap<String?, AsyncRWLockAbstractMap<String, Service>>()
     val config = run {
         val configFile = File(configPath)
         if (!configFile.exists()) {
@@ -79,8 +76,9 @@ class TreeDiagramHttpHandler(configPath: String = "config.xml") : HttpHandler<Ne
             throw Exception("var newServer cannot set, $value")
         }
 
-    val adminEnvironment: AdminEnvironment = object : AdminEnvironment {
-        override val router: SuspendRouter<ModInterface> get() = modManager.router
+    val routerManager = RouterManager(logger)
+    val adminEnvironment: AdminEnvironment = object : AdminEnvironment, RouterManage by routerManager {
+        //override val router: SuspendRouter<ModInterface> get() = modManager.router
         override val logger: Logger = this@TreeDiagramHttpHandler.logger
         override val modManager: ModManager get() = this@TreeDiagramHttpHandler.modManager
         override val config: Config = this@TreeDiagramHttpHandler.config
@@ -101,8 +99,9 @@ class TreeDiagramHttpHandler(configPath: String = "config.xml") : HttpHandler<Ne
             return TokenData.getToken(user, password, database = database, secretKey = secretKey)
         }
 
-        override suspend fun getRouterTree(): String = modManager.getRouterTree()
+        //override suspend fun getRouterTree(): String = modManager.getRouterTree()
         override suspend fun getMod(user: String?, modId: String) = modManager.getMod(user, modId)
+
         override suspend fun getSystemMod(): Set<String> = modManager.getSystemMod()
         override suspend fun getUserMod(user: String?): Set<String>? = modManager.getUserMod(user)
         override suspend fun getModTree(user: String?): String = modManager.getModTree(user)
@@ -126,10 +125,15 @@ class TreeDiagramHttpHandler(configPath: String = "config.xml") : HttpHandler<Ne
             return serviceManager.connect(user, serviceId)
         }
     }
-
-    val environment: Environment = object : Environment by adminEnvironment {}
-    val modManager = ModManager(adminEnvironment)
+    val modManager = ModManager(adminEnvironment, routerManager.router)
     val serviceManager = ServiceManager(adminEnvironment)
+
+    private val environment: Environment = object : Environment by adminEnvironment {}
+    private val adminModEnvironment: AdminModEnvironment = object : AdminModEnvironment by adminEnvironment {}
+    private val adminRouterEnvironment: AdminRouterEnvironment = object : AdminRouterEnvironment by adminEnvironment {}
+    private val adminServiceEnvironment: AdminServiceEnvironment =
+        object : AdminServiceEnvironment by adminEnvironment {}
+    private val adminUserEnvironment = object : AdminUserEnvironment by adminEnvironment {}
 
     init {
         logger.log(Level.INFO, "from $configPath loaded config: $config")
@@ -137,7 +141,7 @@ class TreeDiagramHttpHandler(configPath: String = "config.xml") : HttpHandler<Ne
 
     override fun handle(content: NettyHttpContent) = background {
         logger.log(Level.INFO, "${content.clientIp} require ${content.httpMethod} ${content.uri}")
-        val (mod, path) = modManager.router.get(content.uri)
+        val (mod, path) = routerManager.router.get(content.uri)
         if (mod == null) {
             logger.log(Level.WARNING, "not found ${content.clientIp} require ${content.httpMethod} ${content.uri}")
             content.responseCode = 404
@@ -146,8 +150,14 @@ class TreeDiagramHttpHandler(configPath: String = "config.xml") : HttpHandler<Ne
             path.forEach { content.addParam(it.first, it.second) }
 
             try {
-                if (mod.adminMod) mod.bottomHandle(content, adminEnvironment)
-                else mod.bottomHandle(content, environment)
+                when (mod.modPermission) {
+                    ModPermission.All -> mod.bottomHandle(content, adminEnvironment)
+                    ModPermission.ModManage -> mod.bottomHandle(content, adminModEnvironment)
+                    ModPermission.RouterManage -> mod.bottomHandle(content, adminRouterEnvironment)
+                    ModPermission.ServiceManage -> mod.bottomHandle(content, adminServiceEnvironment)
+                    ModPermission.UserManage -> mod.bottomHandle(content, adminUserEnvironment)
+                    else -> mod.bottomHandle(content, environment)
+                }
             } catch (e: ModException) {
                 content.responseCode = 500
                 content.reset()
