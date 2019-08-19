@@ -14,11 +14,15 @@ import kotlin.coroutines.suspendCoroutine
 @Suppress("MemberVisibilityCanBePrivate", "unused")
 abstract class Mod : ModInterface, Service {
     override val user: String? = null
-    //override val adminMod: Boolean = super.adminMod
     override val require = javaClass.getAnnotation(Require::class.java)?.require
     override val version: Int = javaClass.getAnnotation(Version::class.java)?.version ?: 0
     override val apiVersion: Int = javaClass.getAnnotation(ApiVersion::class.java)?.version ?: 0
     override val adminService: Boolean = javaClass.getAnnotation(AdminService::class.java) != null
+    override val routeList: List<String> = super.routeList
+    override val absRouteList: List<String> = super.absRouteList
+    override val modId: String = super.modId
+    override val simpModId: String = super.simpModId
+    override val modPermission: ModPermission? = super.modPermission
 
     /**
      * 模组私有目录

@@ -50,7 +50,8 @@ class ModManager(
                 cn.tursom.treediagram.systemmod.ModRemover(),
                 cn.tursom.treediagram.systemmod.Download(),
                 cn.tursom.treediagram.systemmod.AutoLoadMod(),
-                cn.tursom.treediagram.systemmod.HtmlIndex()
+                cn.tursom.treediagram.systemmod.HtmlIndex(),
+                cn.tursom.treediagram.systemmod.Router()
             ).forEach {
                 loadMod(it)
             }
@@ -71,23 +72,21 @@ class ModManager(
     }
 
     override suspend fun getSystemMod(): Set<String> {
-        val pathSet = HashSet<String>()
+        val idSet = HashSet<String>()
         systemModMap.forEach { _: String, u: ModInterface ->
-            u.routeList.forEach {
-                pathSet.add(it)
-            }
+            idSet.add(u.modId)
+            idSet.add(u.simpModId)
         }
-        return pathSet
+        return idSet
     }
 
     override suspend fun getUserMod(user: String?): Set<String>? {
-        val pathSet = HashSet<String>()
+        val idSet = HashSet<String>()
         userModMapMap.get(user ?: return null)?.forEach { _: String, u: ModInterface ->
-            u.routeList.forEach {
-                pathSet.add(it)
-            }
+            idSet.add(u.modId)
+            idSet.add(u.simpModId)
         }
-        return pathSet
+        return idSet
 
     }
 

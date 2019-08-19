@@ -24,9 +24,8 @@ class LoadedMod : Mod() {
             modManager.userModMapMap.forEach { s, asyncRWLockAbstractMap ->
                 val userSet = HashSet<String>()
                 asyncRWLockAbstractMap.forEach { _: String, u: ModInterface ->
-                    u.routeList.forEach {
-                        userSet.add(it)
-                    }
+                    userSet.add(u.modId)
+                    userSet.add(u.simpModId)
                 }
                 pathSet.add(s to userSet)
             }

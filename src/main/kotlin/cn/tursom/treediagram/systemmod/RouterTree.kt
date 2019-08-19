@@ -6,7 +6,7 @@ import cn.tursom.treediagram.mod.Mod
 import cn.tursom.treediagram.mod.ModPath
 import cn.tursom.web.HttpContent
 
-@AbsoluteModPath("router", "routerTree", "tree")
+@AbsoluteModPath("routerTree", "tree")
 @ModPath("routerTree", "tree")
 class RouterTree : Mod() {
     override val modDescription: String = "返回路由树"
