@@ -15,10 +15,7 @@ import java.io.File
 class GetUploadFileList : Mod() {
     override val modDescription: String = "获取上传的文件的列表"
 
-    override suspend fun handle(
-        content: HttpContent,
-        environment: Environment
-    ): List<String> {
+    override suspend fun handle(content: HttpContent, environment: Environment): List<String> {
         val token = environment.token(content)
         val uploadPath = "$uploadRootPath${token.usr}/"
         val uploadDir = File(uploadPath)

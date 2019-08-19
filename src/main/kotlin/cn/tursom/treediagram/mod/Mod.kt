@@ -5,11 +5,7 @@ import cn.tursom.treediagram.service.AdminService
 import cn.tursom.treediagram.service.Service
 import java.io.File
 import java.lang.reflect.Field
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 import java.util.logging.Level
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 @Suppress("MemberVisibilityCanBePrivate", "unused")
 abstract class Mod : ModInterface, Service {
@@ -74,24 +70,6 @@ abstract class Mod : ModInterface, Service {
             val field = Mod::class.java.getDeclaredField("user")
             field.isAccessible = true
             field
-        }
-
-        @JvmStatic
-        val uploadRootPath = "upload/"
-
-        @JvmStatic
-        fun getUploadPath(user: String) = "$uploadRootPath$user/"
-
-        @JvmStatic
-        val fileThreadPool: ExecutorService = Executors.newSingleThreadExecutor()
-
-        @JvmStatic
-        suspend fun readFile(file: File): ByteArray {
-            return suspendCoroutine { cont ->
-                fileThreadPool.execute {
-                    cont.resume(file.readBytes())
-                }
-            }
         }
     }
 }

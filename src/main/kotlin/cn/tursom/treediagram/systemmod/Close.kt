@@ -4,12 +4,11 @@ import cn.tursom.treediagram.environment.AdminEnvironment
 import cn.tursom.treediagram.environment.Environment
 import cn.tursom.treediagram.mod.*
 import cn.tursom.treediagram.utils.ModException
+import cn.tursom.utils.AsyncFile
+import cn.tursom.utils.bytebuffer.HeapByteBuffer
 import cn.tursom.utils.xml.Xml
 import cn.tursom.web.HttpContent
-import java.io.File
 import java.util.logging.Level
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 import kotlin.system.exitProcess
 
 @AbsoluteModPath("close/:message", "close")
@@ -31,16 +30,9 @@ class Close : Mod() {
         content.write(gson.toJson(ReturnData(true, message)))
         content.finish()
         fileHandler.close()
-        val configFile = File("config.xml")
+        val configFile = AsyncFile("config.xml")
         configFile.delete()
-        suspendCoroutine<Int> { cont ->
-            fileThreadPool.execute {
-                configFile.outputStream().use {
-                    it.write(Xml.toXml(config).toByteArray())
-                }
-                cont.resume(0)
-            }
-        }
+        configFile.write(HeapByteBuffer.wrap(Xml.toXml(config)))
         exitProcess(0)
     }
 }

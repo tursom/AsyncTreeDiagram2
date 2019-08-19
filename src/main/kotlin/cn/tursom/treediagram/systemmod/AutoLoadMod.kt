@@ -1,12 +1,12 @@
 package cn.tursom.treediagram.systemmod
 
 import cn.tursom.treediagram.environment.AdminModEnvironment
-import cn.tursom.treediagram.environment.ModManage
 import cn.tursom.treediagram.environment.Environment
-import cn.tursom.treediagram.mod.Mod
-import cn.tursom.treediagram.mod.ModPath
+import cn.tursom.treediagram.environment.ModManage
 import cn.tursom.treediagram.manager.mod.ClassData
 import cn.tursom.treediagram.mod.AdminMod
+import cn.tursom.treediagram.mod.Mod
+import cn.tursom.treediagram.mod.ModPath
 import cn.tursom.treediagram.mod.ModPermission
 import cn.tursom.treediagram.utils.ModException
 import cn.tursom.utils.background
@@ -91,11 +91,9 @@ class AutoLoadMod : Mod() {
                 }
             }
         ) {
-            fileThreadPool.execute {
-                File("$uploadRootPath$user/autoLoad.xml").delete()
-                File("$uploadRootPath$user/autoLoad.xml").outputStream().use {
-                    it.write(Xml.toXml(config, "config").toByteArray())
-                }
+            File("$uploadRootPath$user/autoLoad.xml").delete()
+            File("$uploadRootPath$user/autoLoad.xml").outputStream().use {
+                it.write(Xml.toXml(config, "config").toByteArray())
             }
         }
 

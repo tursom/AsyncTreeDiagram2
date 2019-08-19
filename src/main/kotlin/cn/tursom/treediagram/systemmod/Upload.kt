@@ -7,8 +7,11 @@ import cn.tursom.treediagram.mod.ModPath
 import cn.tursom.treediagram.mod.NeedBody
 import cn.tursom.treediagram.service.RegisterService
 import cn.tursom.treediagram.utils.ModException
+import cn.tursom.utils.AsyncFile
+import cn.tursom.utils.bytebuffer.HeapByteBuffer
 import cn.tursom.web.HttpContent
 import java.io.File
+
 
 /**
  * 文件上传模组
@@ -45,21 +48,22 @@ class Upload : Mod() {
 
         val filename = content["filename"] ?: throw ModException("filename not found")
 
-        val file = File("$uploadPath$filename")
+        val file = AsyncFile("$uploadPath$filename")
 
-        val stream = when (val uploadType = content.getParam("type")
+        when (val uploadType = content.getParam("type")
             ?: content.getHeader("type")
             ?: "append") {
             "create" ->
-                if (file.exists()) throw ModException("file exist")
-                else file.outputStream()
-            "append" -> file.outputStream()
+                if (file.exists) throw ModException("file exist")
+                else file.delete()
+            "append" -> {
+            }
             "delete" -> {
                 file.delete()
                 return "file \"$filename\" deleted"
             }
             "exist" -> {
-                return file.exists()
+                return file.exists
             }
             else -> throw ModException(
                 "unsupported upload type \"$uploadType\", please use one of [\"create\", \"append\"(default), " +
@@ -68,12 +72,7 @@ class Upload : Mod() {
         }
 
         // 写入文件
-        fileThreadPool.execute {
-            stream.use {
-                it.write(content.body, content.bodyOffSet, content.readableBytes)
-                it.flush()
-            }
-        }
+        AsyncFile(file.path).write(HeapByteBuffer.wrap(content.body!!, content.bodyOffSet, content.readableBytes))
 
         content.setResponseHeader("filename", filename)
         //返回上传的文件名

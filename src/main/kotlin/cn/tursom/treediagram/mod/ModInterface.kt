@@ -4,10 +4,15 @@ import cn.tursom.treediagram.environment.Environment
 import cn.tursom.treediagram.utils.Json
 import cn.tursom.treediagram.utils.ModException
 import cn.tursom.web.HttpContent
+import java.io.File
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.net.URLDecoder
 import java.net.URLEncoder
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 interface ModInterface {
     val require: Array<out RequireInfo>? get() = javaClass.getAnnotation(Require::class.java)?.require
@@ -115,4 +120,7 @@ interface ModInterface {
 
     val String.urlEncode: String
         get() = URLEncoder.encode(this, "utf-8")
+
+    val uploadRootPath get() = "upload/"
+    fun getUploadPath(user: String) = "$uploadRootPath$user/"
 }

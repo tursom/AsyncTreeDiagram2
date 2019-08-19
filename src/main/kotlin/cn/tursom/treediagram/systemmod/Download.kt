@@ -4,8 +4,11 @@ import cn.tursom.treediagram.environment.Environment
 import cn.tursom.treediagram.mod.AbsoluteModPath
 import cn.tursom.treediagram.mod.Mod
 import cn.tursom.treediagram.mod.ModPath
+import cn.tursom.utils.AsyncFile
+import cn.tursom.utils.bytebuffer.AdvanceByteBuffer
 import cn.tursom.web.HttpContent
 import java.io.File
+import java.nio.ByteBuffer
 
 
 @AbsoluteModPath("download", "download/:fileName", "download/*")
@@ -13,12 +16,14 @@ import java.io.File
 class Download : Mod() {
     override val modDescription: String = "下载文件"
 
-    override suspend fun handle(content: HttpContent, environment: Environment): ByteArray? {
+    override suspend fun handle(content: HttpContent, environment: Environment): AdvanceByteBuffer? {
         val token = environment.token(content)
         val uploadPath = getUploadPath(token.usr!!)
-        val file = File("$uploadPath${content["fileName"] ?: return null}")
-        if (!file.exists()) return null
-        return readFile(file)
+        val file = AsyncFile("$uploadPath${content["fileName"] ?: return null}")
+        if (!file.exists) return null
+        val buffer = AdvanceByteBuffer(file.size.toInt())
+        file.read(buffer)
+        return buffer
     }
 
     override suspend fun bottomHandle(content: HttpContent, environment: Environment) {
@@ -27,7 +32,6 @@ class Download : Mod() {
             content.responseCode = 404
             content.finish()
         } else {
-//            content.setResponseHeader("content-type", "charset=UTF-8")
             content.write(fileData)
             content.finish()
         }
