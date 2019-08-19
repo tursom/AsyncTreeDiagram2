@@ -2,7 +2,6 @@ package cn.tursom.treediagram.environment
 
 import cn.tursom.treediagram.mod.ModInterface
 import cn.tursom.treediagram.service.Service
-import cn.tursom.web.HttpContent
 import java.util.logging.FileHandler
 
 interface AdminEnvironment :
@@ -16,12 +15,9 @@ interface AdminEnvironment :
 
     override suspend fun registerService(user: String?, service: Service): Boolean = false
     override suspend fun removeService(user: String?, service: Service): Boolean = false
-
 }
 
 interface AdminModEnvironment : Environment, ModManage
 interface AdminServiceEnvironment : Environment, ServiceManage
 interface AdminRouterEnvironment : Environment, RouterManage
-interface AdminUserEnvironment : Environment {
-    suspend fun registerUser(content: HttpContent): String
-}
+interface AdminUserEnvironment : Environment, UserManage
