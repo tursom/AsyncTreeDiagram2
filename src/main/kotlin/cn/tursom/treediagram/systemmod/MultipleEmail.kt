@@ -3,7 +3,7 @@ package cn.tursom.treediagram.systemmod
 import cn.tursom.treediagram.datastruct.MultipleEmailData
 import cn.tursom.treediagram.environment.Environment
 import cn.tursom.treediagram.mod.Mod
-import cn.tursom.utils.bytebuffer.fromJson
+import cn.tursom.utils.fromJson
 import cn.tursom.web.HttpContent
 
 

@@ -9,6 +9,7 @@ import cn.tursom.treediagram.service.RegisterService
 import cn.tursom.treediagram.utils.ModException
 import cn.tursom.utils.AsyncFile
 import cn.tursom.utils.bytebuffer.HeapByteBuffer
+import cn.tursom.utils.bytebuffer.readNioBuffer
 import cn.tursom.web.HttpContent
 import java.io.File
 
@@ -72,10 +73,10 @@ class Upload : Mod() {
         }
 
         // 写入文件
-        AsyncFile(file.path).write(HeapByteBuffer.wrap(content.body!!, content.bodyOffSet, content.readableBytes))
-
+        val size = content.body!!.readNioBuffer { file.writeAndWait(it) }
+        file.close()
         content.setResponseHeader("filename", filename)
         //返回上传的文件名
-        return filename
+        return size
     }
 }

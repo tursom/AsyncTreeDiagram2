@@ -4,15 +4,10 @@ import cn.tursom.treediagram.environment.Environment
 import cn.tursom.treediagram.utils.Json
 import cn.tursom.treediagram.utils.ModException
 import cn.tursom.web.HttpContent
-import java.io.File
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.net.URLDecoder
 import java.net.URLEncoder
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 interface ModInterface {
     val require: Array<out RequireInfo>? get() = javaClass.getAnnotation(Require::class.java)?.require
@@ -106,20 +101,6 @@ interface ModInterface {
         write(if (prettyJson) prettyGson.toJson(json)!! else gson.toJson(json)!!)
         finish()
     }
-
-    /**
-     * 方便获取ServletRequest里面的数据
-     * 使得子类中可以直接使用request[ 参数名 ]的形式来获取数据
-     */
-    operator fun HttpContent.get(key: String): String? {
-        return URLDecoder.decode(this.getHeader(key) ?: this.getParam(key) ?: return null, "utf-8")
-    }
-
-    val String.urlDecode: String
-        get() = URLDecoder.decode(this, "utf-8")
-
-    val String.urlEncode: String
-        get() = URLEncoder.encode(this, "utf-8")
 
     val uploadRootPath get() = "upload/"
     fun getUploadPath(user: String) = "$uploadRootPath$user/"

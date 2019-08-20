@@ -7,6 +7,7 @@ import cn.tursom.treediagram.mod.AdminMod
 import cn.tursom.treediagram.mod.Mod
 import cn.tursom.treediagram.mod.ModPath
 import cn.tursom.web.HttpContent
+import java.util.logging.Level
 
 @AbsoluteModPath("register", "register/:username")
 @ModPath("register", "register/:username")

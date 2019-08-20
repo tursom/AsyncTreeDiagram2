@@ -5,8 +5,10 @@ import cn.tursom.database.async.AsyncSqlHelper
 import cn.tursom.database.clauses.clause
 import cn.tursom.utils.sha256
 import cn.tursom.web.HttpContent
+import java.util.logging.Level
+import java.util.logging.Logger
 
-object UserUtils{
+object UserUtils {
     suspend fun findUser(database: AsyncSqlHelper, username: String): UserData? {
         val adapter = AsyncSqlAdapter(UserData::class.java)
         database.select(adapter, null, where = clause {
@@ -45,22 +47,27 @@ object UserUtils{
         database: AsyncSqlHelper,
         secretKey: Int,
         content: HttpContent,
-        newServer: Boolean = false
+        newServer: Boolean = false,
+        logger: Logger
     ): String {
+        //获取新用户用户名
+        val username = content.getHeader("username")
+            ?: content.getParam("username")
+            ?: return "{\"state\":false,\"result\":\"user name is null\"}"
+        //获取新用户密码
+        val password = content.getHeader("password")
+            ?: content.getParam("password")
+            ?: return "{\"state\":false,\"result\":\"password is null\"}"
+
+        logger.log(Level.INFO, "new user register request: $username")
+
         //如果数据库内无任何用户，则可以直接创建一个admin权限的用户
         return if (newServer) {
             //如果没有数据，说明现在没有任何用户注册
             //可以直接创建一个admin权限的用户
-            //获取新用户用户名
-            val username = content.getHeader("username")
-                ?: content.getParam("username")
-                ?: return "{\"state\":false,\"result\":\"user name is null\"}"
-            //获取新用户密码
-            val password = content.getHeader("password")
-                ?: content.getParam("password")
-                ?: return "{\"state\":false,\"result\":\"password is null\"}"
             //添加一个admin权限的新用户
             addUser(database, username, password, "admin")
+            logger.log(Level.INFO, "new admin user added: $username")
             //返回成功信息
             "{\"state\":true,\"result\":\"${TokenData.getToken(
                 username,
@@ -80,12 +87,6 @@ object UserUtils{
                 token.lev?.contains("admin") != true -> "{\"state\":false,\"result\":\"token user not admin\"}"
                 //满足以上两个调解则注册新用户
                 else -> {
-                    //获取新用户用户名
-                    val username =
-                        content.getParam("username") ?: return "{\"state\":false,\"result\":\"user name is null\"}"
-                    //获取新用户密码
-                    val password =
-                        content.getParam("password") ?: return "{\"state\":false,\"result\":\"password is null\"}"
                     //获取要注册的用户的权限
                     val level = content.getParam("level")
                     //添加新用户

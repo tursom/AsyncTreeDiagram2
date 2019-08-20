@@ -17,11 +17,16 @@ class ModTree : Mod() {
             environment as AdminModEnvironment
             environment.modManager.getModTree("system")
         } else {
-            environment as AdminEnvironment
+            environment as AdminModEnvironment
             environment.modManager.getModTree(content["user"])
         }
 
     override suspend fun bottomHandle(content: HttpContent, environment: Environment) {
-        content.handleText(handle(content, environment))
+        if (content.getCacheTag()?.toLongOrNull() == environment.modEnvLastChangeTime) {
+            content.usingCache()
+        } else {
+            content.setCacheTag(environment.modEnvLastChangeTime)
+            content.handleText(handle(content, environment))
+        }
     }
 }

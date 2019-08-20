@@ -12,6 +12,12 @@ class RouterTree : Mod() {
     override val modDescription: String = "返回路由树"
 
     override suspend fun handle(content: HttpContent, environment: Environment) = environment.getRouterTree()
-    override suspend fun bottomHandle(content: HttpContent, environment: Environment) =
-        content.handleText(handle(content, environment))
+    override suspend fun bottomHandle(content: HttpContent, environment: Environment) {
+        if (content.getCacheTag()?.toLongOrNull() == environment.routerLastChangeTime) {
+            content.usingCache()
+        } else {
+            content.setCacheTag(environment.routerLastChangeTime)
+            content.handleText(handle(content, environment))
+        }
+    }
 }

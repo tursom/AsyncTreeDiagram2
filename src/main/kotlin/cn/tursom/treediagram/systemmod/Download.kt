@@ -6,9 +6,8 @@ import cn.tursom.treediagram.mod.Mod
 import cn.tursom.treediagram.mod.ModPath
 import cn.tursom.utils.AsyncFile
 import cn.tursom.utils.bytebuffer.AdvanceByteBuffer
+import cn.tursom.utils.bytebuffer.NioAdvanceByteBuffer
 import cn.tursom.web.HttpContent
-import java.io.File
-import java.nio.ByteBuffer
 
 
 @AbsoluteModPath("download", "download/:fileName", "download/*")
@@ -21,8 +20,9 @@ class Download : Mod() {
         val uploadPath = getUploadPath(token.usr!!)
         val file = AsyncFile("$uploadPath${content["fileName"] ?: return null}")
         if (!file.exists) return null
-        val buffer = AdvanceByteBuffer(file.size.toInt())
+        val buffer = NioAdvanceByteBuffer(file.size.toInt())
         file.read(buffer)
+        file.close()
         return buffer
     }
 

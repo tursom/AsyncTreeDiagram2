@@ -31,9 +31,8 @@ import java.util.logging.FileHandler
 import java.util.logging.Level
 import java.util.logging.Logger
 
-class TreeDiagramHttpHandler(configPath: String = "config.xml") : HttpHandler<NettyHttpContent> {
-    private val secretKey: Int = randomInt(-999999999, 999999999)
-    val config = run {
+class TreeDiagramHttpHandler(val config: Config) : HttpHandler<NettyHttpContent> {
+    constructor(configPath: String = "config.xml") : this({
         val configFile = File(configPath)
         if (!configFile.exists()) {
             configFile.createNewFile()
@@ -42,7 +41,9 @@ class TreeDiagramHttpHandler(configPath: String = "config.xml") : HttpHandler<Ne
             }
         }
         Xml.parse<Config>(configFile)
-    }
+    }())
+
+    private val secretKey: Int = randomInt(-999999999, 999999999)
 
     private val fileHandler = run {
         if (!File(config.logPath).exists()) {
@@ -87,7 +88,7 @@ class TreeDiagramHttpHandler(configPath: String = "config.xml") : HttpHandler<Ne
         override val userModMapMap: AsyncLockMap<out String, out AsyncLockMap<out String, out ModInterface>> get() = modManager.userModMapMap
 
         override suspend fun registerUser(content: HttpContent): String {
-            return UserUtils.register(database, secretKey, content, newServer)
+            return UserUtils.register(database, secretKey, content, newServer, logger)
         }
 
         override suspend fun checkToken(token: String): TokenData {
@@ -133,10 +134,6 @@ class TreeDiagramHttpHandler(configPath: String = "config.xml") : HttpHandler<Ne
     private val adminServiceEnvironment: AdminServiceEnvironment =
         object : AdminServiceEnvironment by adminEnvironment {}
     private val adminUserEnvironment = object : AdminUserEnvironment by adminEnvironment {}
-
-    init {
-        logger.log(Level.INFO, "from $configPath loaded config: $config")
-    }
 
     override fun handle(content: NettyHttpContent) = background {
         logger.log(Level.INFO, "${content.clientIp} require ${content.httpMethod} ${content.uri}")

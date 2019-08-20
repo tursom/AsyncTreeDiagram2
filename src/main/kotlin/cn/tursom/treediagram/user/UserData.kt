@@ -3,7 +3,7 @@ package cn.tursom.treediagram.user
 import cn.tursom.database.SqlUtils.sqlStr
 import cn.tursom.database.annotation.*
 import cn.tursom.treediagram.utils.Json.gson
-import cn.tursom.utils.bytebuffer.fromJson
+import cn.tursom.utils.fromJson
 
 @Suppress("unused")
 @TableName("users")

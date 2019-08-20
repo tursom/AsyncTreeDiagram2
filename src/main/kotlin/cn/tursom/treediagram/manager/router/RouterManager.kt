@@ -6,6 +6,7 @@ import cn.tursom.web.router.SuspendRouter
 import java.util.logging.Logger
 
 class RouterManager(override val logger: Logger) : RouterManage {
+    override val routerLastChangeTime: Long get() = router.lashChangeTime
     override val router: SuspendRouter<ModInterface> = SuspendRouter()
     override suspend fun getRouterTree(): String = router.suspendToString()
 

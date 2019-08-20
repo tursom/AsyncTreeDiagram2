@@ -8,7 +8,7 @@ import cn.tursom.treediagram.mod.Mod
 import cn.tursom.treediagram.mod.ModPath
 import cn.tursom.treediagram.manager.mod.ClassData
 import cn.tursom.treediagram.utils.ModException
-import cn.tursom.utils.bytebuffer.fromJson
+import cn.tursom.utils.fromJson
 import cn.tursom.web.HttpContent
 
 /**

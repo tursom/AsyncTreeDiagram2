@@ -96,7 +96,7 @@ class ModManager(
      */
     private suspend fun loadMod(mod: ModInterface) {
         //输出日志信息
-        logger.info("loading mod: $mod")
+        logger.info("loading mod: $mod, mod permission: ${mod.modPermission}")
 
         mod.require?.forEach {
             val parentMod = systemModMap.get(it.modId) ?: throw ModLoadException("mod ${it.modId} mot found")
@@ -135,7 +135,7 @@ class ModManager(
      */
     suspend fun loadMod(user: String, mod: ModInterface): String {
         // 输出日志信息
-        logger.info("user: $user loading mod: ${mod::class.java.name}")
+        logger.info("user: $user loading mod: ${mod.modId}, mod permission: ${mod.modPermission}")
 
         mod.require?.forEach {
             val parentMod = systemModMap.get(it.modId) ?: userModMapMap.get(user)?.get(it.modId)
