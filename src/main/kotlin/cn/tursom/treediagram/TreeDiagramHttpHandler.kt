@@ -88,7 +88,7 @@ class TreeDiagramHttpHandler(val config: Config) : HttpHandler<NettyHttpContent>
         override val userModMapMap: AsyncLockMap<out String, out AsyncLockMap<out String, out ModInterface>> get() = modManager.userModMapMap
 
         override suspend fun registerUser(content: HttpContent): String {
-            return UserUtils.register(database, secretKey, content, newServer, logger)
+            return UserUtils.register(database, secretKey, content, logger, this, newServer)
         }
 
         override suspend fun checkToken(token: String): TokenData {

@@ -8,6 +8,7 @@ import cn.tursom.utils.usingTime
 import cn.tursom.web.HttpContent
 import cn.tursom.web.router.SuspendRouterNode
 import cn.tursom.web.utils.EmptyHttpContent
+import java.lang.Exception
 import java.util.logging.Level
 
 @AbsoluteModPath("", "index.html")
@@ -74,6 +75,12 @@ class HtmlIndex : Mod() {
         if (content.getCacheTag()?.toLongOrNull() == cacheTime) {
             content.usingCache()
         } else {
+            try {
+                environment.token(content)
+            } catch (e: Exception) {
+                content.decodeCookie("token")
+                content.addCookie("token", environment.makeGuestToken(), path = "/")
+            }
             handle(content, environment)
             content.setCacheTag(cacheTime)
             content.finishHtml(200, byteArrayCache)

@@ -18,10 +18,4 @@ class Register : Mod() {
         environment as AdminEnvironment
         return environment.registerUser(content)
     }
-
-    override suspend fun bottomHandle(content: HttpContent, environment: Environment) {
-        content.setResponseHeader("content-type", "application/json; charset=UTF-8")
-        content.write(handle(content, environment))
-        content.finish()
-    }
 }

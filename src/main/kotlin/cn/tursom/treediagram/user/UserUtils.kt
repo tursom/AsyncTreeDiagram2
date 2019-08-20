@@ -3,6 +3,8 @@ package cn.tursom.treediagram.user
 import cn.tursom.database.async.AsyncSqlAdapter
 import cn.tursom.database.async.AsyncSqlHelper
 import cn.tursom.database.clauses.clause
+import cn.tursom.treediagram.environment.ServerEnvironment
+import cn.tursom.treediagram.utils.ModException
 import cn.tursom.utils.sha256
 import cn.tursom.web.HttpContent
 import java.util.logging.Level
@@ -47,17 +49,18 @@ object UserUtils {
         database: AsyncSqlHelper,
         secretKey: Int,
         content: HttpContent,
-        newServer: Boolean = false,
-        logger: Logger
+        logger: Logger,
+        environment: ServerEnvironment,
+        newServer: Boolean = false
     ): String {
         //获取新用户用户名
         val username = content.getHeader("username")
             ?: content.getParam("username")
-            ?: return "{\"state\":false,\"result\":\"user name is null\"}"
+            ?: throw ModException("user name is null")
         //获取新用户密码
         val password = content.getHeader("password")
             ?: content.getParam("password")
-            ?: return "{\"state\":false,\"result\":\"password is null\"}"
+            ?: throw ModException("password is null")
 
         logger.log(Level.INFO, "new user register request: $username")
 
@@ -69,36 +72,32 @@ object UserUtils {
             addUser(database, username, password, "admin")
             logger.log(Level.INFO, "new admin user added: $username")
             //返回成功信息
-            "{\"state\":true,\"result\":\"${TokenData.getToken(
+            TokenData.getToken(
                 username,
                 password,
                 secretKey = secretKey,
                 database = database
-            )}\"}"
+            )
         } else {
             //解析token
-            val token = TokenData.parseToken(
-                content.getParam("token") ?: return "{\"state\":false,\"result\":\"no token get\"}",
-                secretKey
-            )  //客户端没有发送token
-                ?: return "{\"state\":false,\"result\":\"cant parse token\"}" //token无法解析
+            val token = environment.token(content)
             when {
                 //用户权限不是admin
-                token.lev?.contains("admin") != true -> "{\"state\":false,\"result\":\"token user not admin\"}"
-                //满足以上两个调解则注册新用户
+                token.lev?.contains("admin") != true -> throw ModException("token user not admin")
+                //满足以上两个条件则注册新用户
                 else -> {
                     //获取要注册的用户的权限
                     val level = content.getParam("level")
                     //添加新用户
                     addUser(database, username, password, level ?: "user")
                     //返回成功信息
-                    "{\"state\":true,\"result\":\"${TokenData.getToken(
+                    TokenData.getToken(
                         username, password,
                         secretKey = secretKey,
                         database = database
-                    )}\"}"
+                    )
                 }
             }
-        }
+        } ?: throw ModException("create user failed")
     }
 }

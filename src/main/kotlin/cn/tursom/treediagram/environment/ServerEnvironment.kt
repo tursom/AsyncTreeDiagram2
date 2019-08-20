@@ -11,11 +11,13 @@ interface ServerEnvironment : LoggerEnvironment {
     suspend fun checkToken(token: String): TokenData
     suspend fun makeToken(user: String, password: String): String?
     suspend fun token(content: HttpContent) = checkToken(
+        getToken(content) ?: throw ModException("no token get")
+    )
+
+    suspend fun getToken(content: HttpContent) =
         content.getHeader("token")
             ?: content.getParam("token")
             ?: content.getCookie("token")?.value
-            ?: throw ModException("no token get")
-    )
 
     suspend fun makeGuestToken(): String
 }

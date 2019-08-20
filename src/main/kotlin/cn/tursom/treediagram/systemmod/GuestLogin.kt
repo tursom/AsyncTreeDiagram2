@@ -9,7 +9,8 @@ import cn.tursom.web.HttpContent
 class GuestLogin : Mod() {
     override suspend fun handle(content: HttpContent, environment: Environment): Any? {
         val token = environment.makeGuestToken()
-        content.addCookie("token", token)
+        content.deleteCookie("token")
+        content.addCookie("token", token, maxAge = 60 * 60 * 24 * 3, path = "/")
         return token
     }
 }
