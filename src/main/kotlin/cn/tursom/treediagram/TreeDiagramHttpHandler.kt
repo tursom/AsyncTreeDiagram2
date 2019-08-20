@@ -32,8 +32,8 @@ import java.util.logging.Level
 import java.util.logging.Logger
 
 class TreeDiagramHttpHandler(val config: Config) : HttpHandler<NettyHttpContent> {
-    constructor(configPath: String = "config.xml") : this({
-        val configFile = File(configPath)
+    constructor(configPath: String = "config.xml") : this(File(configPath))
+    constructor(configFile: File) : this({
         if (!configFile.exists()) {
             configFile.createNewFile()
             configFile.outputStream().use {
@@ -97,6 +97,10 @@ class TreeDiagramHttpHandler(val config: Config) : HttpHandler<NettyHttpContent>
 
         override suspend fun makeToken(user: String, password: String): String? {
             return TokenData.getToken(user, password, database = database, secretKey = secretKey)
+        }
+
+        override suspend fun makeGuestToken(): String {
+            return TokenData.getGuestToken(secretKey)
         }
 
         //override suspend fun getRouterTree(): String = modManager.getRouterTree()
@@ -170,9 +174,5 @@ class TreeDiagramHttpHandler(val config: Config) : HttpHandler<NettyHttpContent>
                 content.finish()
             }
         }
-    }
-
-    override fun exception(e: ExceptionContent) {
-        e.cause.printStackTrace()
     }
 }

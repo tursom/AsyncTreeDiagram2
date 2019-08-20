@@ -55,6 +55,13 @@ data class TokenData private constructor(
     companion object {
         val digestFunctionBase64 = "MD5".base64()  //默认md5加密
 
+        fun getGuestToken(
+            secretKey: Int,
+            exp: Long? = 1000 * 60 * 60 * 24 * 3
+        ): String {
+            return TokenData(null, listOf("guest")).getToken(secretKey)
+        }
+
         /**
          * 签发一个token
          * @param username 用户名

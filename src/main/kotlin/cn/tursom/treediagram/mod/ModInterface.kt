@@ -6,8 +6,7 @@ import cn.tursom.treediagram.utils.ModException
 import cn.tursom.web.HttpContent
 import java.io.PrintWriter
 import java.io.StringWriter
-import java.net.URLDecoder
-import java.net.URLEncoder
+
 
 interface ModInterface {
     val require: Array<out RequireInfo>? get() = javaClass.getAnnotation(Require::class.java)?.require

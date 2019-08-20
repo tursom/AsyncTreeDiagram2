@@ -1,12 +1,9 @@
 package cn.tursom.treediagram.sdk
 
-import cn.tursom.treediagram.TreeDiagramHttpHandler
-import cn.tursom.treediagram.utils.Config
 import cn.tursom.treediagram.utils.Json.gson
 import cn.tursom.utils.AsyncHttpRequest
 import cn.tursom.utils.fromJson
 import cn.tursom.utils.sha256
-import cn.tursom.web.netty.NettyHttpServer
 
 @Suppress("CanBeParameter", "MemberVisibilityCanBePrivate")
 class TreeDiagramConnection(val host: String, val port: Int, val https: Boolean = false) {

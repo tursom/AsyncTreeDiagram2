@@ -51,7 +51,8 @@ class ModManager(
                 cn.tursom.treediagram.systemmod.Download(),
                 cn.tursom.treediagram.systemmod.AutoLoadMod(),
                 cn.tursom.treediagram.systemmod.HtmlIndex(),
-                cn.tursom.treediagram.systemmod.Router()
+                cn.tursom.treediagram.systemmod.Router(),
+                cn.tursom.treediagram.systemmod.GuestLogin()
             ).forEach {
                 loadMod(it)
             }
