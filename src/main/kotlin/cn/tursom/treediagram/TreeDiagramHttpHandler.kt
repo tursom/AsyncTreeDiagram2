@@ -77,6 +77,7 @@ class TreeDiagramHttpHandler(val config: Config) : HttpHandler<NettyHttpContent>
         }
 
     val routerManager = RouterManager(logger)
+    @Suppress("RedundantOverride")
     val adminEnvironment: AdminEnvironment = object : AdminEnvironment, RouterManage by routerManager {
         //override val router: SuspendRouter<ModInterface> get() = modManager.router
         override val logger: Logger = this@TreeDiagramHttpHandler.logger
@@ -98,6 +99,10 @@ class TreeDiagramHttpHandler(val config: Config) : HttpHandler<NettyHttpContent>
         override suspend fun makeToken(user: String, password: String): String? {
             return TokenData.getToken(user, password, database = database, secretKey = secretKey)
         }
+
+        @Suppress("RedundantOverride")
+        override fun tokenStr(content: HttpContent) = super.tokenStr(content)
+
 
         override suspend fun makeGuestToken(): String {
             return TokenData.getGuestToken(secretKey)

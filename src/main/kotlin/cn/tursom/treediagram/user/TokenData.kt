@@ -10,6 +10,7 @@ import cn.tursom.utils.base64decode
 import cn.tursom.utils.digest
 import cn.tursom.utils.md5
 import cn.tursom.web.HttpContent
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * token的结构为
@@ -26,10 +27,11 @@ import cn.tursom.web.HttpContent
 
 @Suppress("DataClassPrivateConstructor")
 data class TokenData private constructor(
-    val usr: String?,  //用户名
-    val lev: List<String>?, //用户权限
-    val tim: Long? = System.currentTimeMillis(),  //签发时间
-    val exp: Long? = 1000 * 60 * 60 * 24 * 3  //过期时间
+    val usr: String?,  // 用户名
+    val lev: List<String>?, // 用户权限
+    val tim: Long? = System.currentTimeMillis(),  // 签发时间
+    val exp: Long? = 1000 * 60 * 60 * 24 * 3,  // 过期时间
+    val id: Int = atomInt.incrementAndGet()  // 唯一ID
 ) {
 
     /**
@@ -53,13 +55,14 @@ data class TokenData private constructor(
     }
 
     companion object {
+        private val atomInt = AtomicInteger(0)
         val digestFunctionBase64 = "MD5".base64()  //默认md5加密
 
         fun getGuestToken(
             secretKey: Int,
             exp: Long? = 1000 * 60 * 60 * 24 * 3
         ): String {
-            return TokenData(null, listOf("guest")).getToken(secretKey)
+            return TokenData(null, listOf("guest"), exp = exp).getToken(secretKey)
         }
 
         /**
