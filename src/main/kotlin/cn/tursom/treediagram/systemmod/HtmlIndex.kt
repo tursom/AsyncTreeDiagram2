@@ -62,7 +62,7 @@ class HtmlIndex : Mod() {
         val rootRoute = router.root
 
         if (cacheTime < environment.router.lashChangeTime) {
-            environment.logger.log(Level.INFO, "HtmlIndex flushed cache using time ${usingTime {
+            environment.logger.log(Level.INFO, "HtmlIndex flushed cache using ${usingTime {
                 val stringBuilder =
                     StringBuilder("<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>index</title></head><body>")
                 toString(rootRoute, stringBuilder, "")
@@ -73,7 +73,7 @@ class HtmlIndex : Mod() {
                 val byteArrayCache = NettyAdvanceByteBuffer(Unpooled.directBuffer(bytesCache.size))
                 byteArrayCache.byteBuf.writeBytes(bytesCache)
                 this.nettyCache = byteArrayCache
-            }}")
+            }} ms")
         }
         return cache
     }
