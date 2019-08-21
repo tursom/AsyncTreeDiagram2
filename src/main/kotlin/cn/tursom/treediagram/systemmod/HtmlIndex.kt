@@ -4,10 +4,10 @@ import cn.tursom.treediagram.environment.AdminEnvironment
 import cn.tursom.treediagram.environment.AdminRouterEnvironment
 import cn.tursom.treediagram.environment.Environment
 import cn.tursom.treediagram.mod.*
-import cn.tursom.utils.bytebuffer.AdvanceByteBuffer
 import cn.tursom.utils.usingTime
 import cn.tursom.web.HttpContent
 import cn.tursom.web.netty.NettyAdvanceByteBuffer
+import cn.tursom.web.netty.NettyHttpContent
 import cn.tursom.web.router.SuspendRouterNode
 import cn.tursom.web.utils.EmptyHttpContent
 import io.netty.buffer.Unpooled
@@ -19,7 +19,8 @@ import java.util.logging.Level
 @AdminMod(ModPermission.RouterManage)
 class HtmlIndex : Mod() {
     private var cache: String = ""
-    private var byteArrayCache: AdvanceByteBuffer? = null
+    private var bytesCache: ByteArray = ByteArray(0)
+    private var nettyCache: NettyAdvanceByteBuffer? = null
     private var cacheTime: Long = 0
 
     override suspend fun receiveMessage(message: Any?, environment: Environment): Any? {
@@ -68,10 +69,10 @@ class HtmlIndex : Mod() {
                 stringBuilder.append("</body></html>")
                 cache = stringBuilder.toString()
                 cacheTime = System.currentTimeMillis()
-                val cacheBytes = cache.toByteArray()
-                val byteArrayCache = NettyAdvanceByteBuffer(Unpooled.directBuffer(cacheBytes.size))
-                byteArrayCache.byteBuf.writeBytes(cacheBytes)
-                this.byteArrayCache = byteArrayCache
+                bytesCache = cache.toByteArray()
+                val byteArrayCache = NettyAdvanceByteBuffer(Unpooled.directBuffer(bytesCache.size))
+                byteArrayCache.byteBuf.writeBytes(bytesCache)
+                this.nettyCache = byteArrayCache
             }}")
         }
         return cache
@@ -89,7 +90,10 @@ class HtmlIndex : Mod() {
             }
             handle(content, environment)
             content.setCacheTag(cacheTime)
-            content.finishHtml(200, byteArrayCache!!)
+            if (content is NettyHttpContent)
+                content.finishHtml(200, nettyCache!!)
+            else
+                content.finishHtml(200, bytesCache)
         }
     }
 }
