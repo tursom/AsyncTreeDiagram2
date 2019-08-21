@@ -89,20 +89,17 @@ interface ModInterface {
 
     suspend fun HttpContent.handleText(text: String) {
         setResponseHeader("content-type", "text/plain; charset=UTF-8")
-        write(text)
-        finish()
+        finish(text.toByteArray())
     }
 
     suspend fun HttpContent.handleHtml(text: String) {
         setResponseHeader("content-type", "text/html; charset=UTF-8")
-        write(text)
-        finish()
+        finish(text.toByteArray())
     }
 
     suspend fun HttpContent.handleJson(json: Any?) {
         setResponseHeader("content-type", "application/json; charset=UTF-8")
-        write(if (prettyJson) prettyGson.toJson(json)!! else gson.toJson(json)!!)
-        finish()
+        finish((if (prettyJson) prettyGson.toJson(json)!! else gson.toJson(json)!!).toByteArray())
     }
 
     val uploadRootPath get() = "upload/"

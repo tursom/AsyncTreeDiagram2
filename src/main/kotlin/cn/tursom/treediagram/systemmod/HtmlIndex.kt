@@ -4,10 +4,13 @@ import cn.tursom.treediagram.environment.AdminEnvironment
 import cn.tursom.treediagram.environment.AdminRouterEnvironment
 import cn.tursom.treediagram.environment.Environment
 import cn.tursom.treediagram.mod.*
+import cn.tursom.utils.bytebuffer.AdvanceByteBuffer
 import cn.tursom.utils.usingTime
 import cn.tursom.web.HttpContent
+import cn.tursom.web.netty.NettyAdvanceByteBuffer
 import cn.tursom.web.router.SuspendRouterNode
 import cn.tursom.web.utils.EmptyHttpContent
+import io.netty.buffer.Unpooled
 import java.lang.Exception
 import java.util.logging.Level
 
@@ -16,7 +19,7 @@ import java.util.logging.Level
 @AdminMod(ModPermission.RouterManage)
 class HtmlIndex : Mod() {
     private var cache: String = ""
-    private var byteArrayCache: ByteArray = ByteArray(0)
+    private var byteArrayCache: AdvanceByteBuffer? = null
     private var cacheTime: Long = 0
 
     override suspend fun receiveMessage(message: Any?, environment: Environment): Any? {
@@ -65,7 +68,10 @@ class HtmlIndex : Mod() {
                 stringBuilder.append("</body></html>")
                 cache = stringBuilder.toString()
                 cacheTime = System.currentTimeMillis()
-                byteArrayCache = cache.toByteArray()
+                val cacheBytes = cache.toByteArray()
+                val byteArrayCache = NettyAdvanceByteBuffer(Unpooled.directBuffer(cacheBytes.size))
+                byteArrayCache.byteBuf.writeBytes(cacheBytes)
+                this.byteArrayCache = byteArrayCache
             }}")
         }
         return cache
@@ -83,7 +89,7 @@ class HtmlIndex : Mod() {
             }
             handle(content, environment)
             content.setCacheTag(cacheTime)
-            content.finishHtml(200, byteArrayCache)
+            content.finishHtml(200, byteArrayCache!!)
         }
     }
 }

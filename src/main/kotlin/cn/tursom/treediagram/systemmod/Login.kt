@@ -20,6 +20,9 @@ class Login : Mod() {
     ): String {
         val username = content["name"] ?: throw ModException("no user name get")
         val password = content["password"] ?: throw ModException("no password get")
-        return environment.makeToken(username, password) ?: throw ModException("can't login")
+        val token = environment.makeToken(username, password) ?: throw ModException("can't login")
+        content.deleteCookie("token")
+        content.addCookie("token", token, maxAge = 60 * 10)
+        return token
     }
 }

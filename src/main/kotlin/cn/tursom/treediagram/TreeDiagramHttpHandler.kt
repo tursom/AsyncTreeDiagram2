@@ -100,9 +100,8 @@ class TreeDiagramHttpHandler(val config: Config) : HttpHandler<NettyHttpContent>
             return TokenData.getToken(user, password, database = database, secretKey = secretKey)
         }
 
-        @Suppress("RedundantOverride")
-        override fun tokenStr(content: HttpContent) = super.tokenStr(content)
-
+        override fun tokenStr(content: HttpContent) =
+            content.getHeader("token") ?: content.getParam("token") ?: content.getCookie("token")?.value
 
         override suspend fun makeGuestToken(): String {
             return TokenData.getGuestToken(secretKey)
