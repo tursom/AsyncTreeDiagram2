@@ -76,7 +76,7 @@ interface ModInterface {
 
     suspend fun <T> handleJson(content: HttpContent, action: suspend () -> T) {
         val ret = try {
-            ReturnData(false, action())
+            ReturnData(true, action())
         } catch (e: ModException) {
             ReturnData(false, e.message)
         } catch (e: Exception) {

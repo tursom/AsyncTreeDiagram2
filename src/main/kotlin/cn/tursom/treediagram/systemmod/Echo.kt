@@ -40,6 +40,11 @@ class Echo : Mod() {
     }
 
     override suspend fun bottomHandle(content: HttpContent, environment: Environment) {
-        content.handleText(handle(content, environment))
+        if (content.getCacheTag() != null) {
+            content.usingCache()
+        } else {
+            content.setCacheTag("cached")
+            content.handleText(handle(content, environment))
+        }
     }
 }

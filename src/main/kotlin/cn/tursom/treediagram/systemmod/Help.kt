@@ -13,9 +13,9 @@ import java.util.concurrent.ConcurrentHashMap
 class Help : Mod() {
     override val modDescription: String = "查看模组信息"
 
-    private val modMap = ConcurrentHashMap<Pair<String?, ModInterface>, SoftReference<String>>()
+    private val modCacheMap = ConcurrentHashMap<Pair<String?, String>, ModHelperCache>()
 
-    override suspend fun handle(content: HttpContent, environment: Environment): String? {
+    override suspend fun handle(content: HttpContent, environment: Environment): ByteArray? {
         environment as AdminEnvironment
         val modManager = environment.modManager
 
@@ -26,10 +26,10 @@ class Help : Mod() {
         }
         val modName = content["modId"] ?: "Help"
         val mod = modManager.getMod(user, modName) ?: return null
-        val buff = modMap[user to mod]
-        val buffStr = buff?.get()
-        if (buffStr != null) {
-            return buffStr
+        val cache = modCacheMap[user to mod.modId]
+        val cacheStr = cache?.data?.get()
+        if (cache != null && cache.cacheTime > environment.modEnvLastChangeTime && cacheStr != null) {
+            return cacheStr
         }
         val baseRoute = "/mod/${if (user == null) "system" else "user/$user"}/"
         val sb = StringBuilder()
@@ -54,12 +54,23 @@ class Help : Mod() {
                 sb.append("\n|- $route")
             }
         }
-        val str = sb.toString()
-        modMap[user to mod] = SoftReference(str)
+        val str = sb.toString().toByteArray()
+        modCacheMap[user to mod.modId] = ModHelperCache(str)
         return str
     }
 
     override suspend fun bottomHandle(content: HttpContent, environment: Environment) {
-        content.handleText(handle(content, environment) ?: "未找到模组")
+        if (content.getCacheTag()?.toLongOrNull() == environment.modEnvLastChangeTime) {
+            content.usingCache()
+        } else {
+            content.setCacheTag(environment.modEnvLastChangeTime)
+            content.finishText(handle(content, environment) ?: "未找到模组".toByteArray())
+        }
+    }
+
+    data class ModHelperCache(val data: SoftReference<ByteArray>, val cacheTime: Long = System.currentTimeMillis()) {
+        constructor(data: String, cacheTime: Long = System.currentTimeMillis()) : this(data.toByteArray(), cacheTime)
+        constructor(data: ByteArray, cacheTime: Long = System.currentTimeMillis()) :
+                this(SoftReference(data), cacheTime)
     }
 }

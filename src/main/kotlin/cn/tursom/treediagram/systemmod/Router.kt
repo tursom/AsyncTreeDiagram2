@@ -37,4 +37,13 @@ class Router : Mod() {
             routeList.add("/$it")
         }
     }
+
+    override suspend fun bottomHandle(content: HttpContent, environment: Environment) {
+        if (content.getCacheTag()?.toLongOrNull() == environment.modEnvLastChangeTime) {
+            content.usingCache()
+        } else {
+            content.setCacheTag(environment.modEnvLastChangeTime)
+            super.bottomHandle(content, environment)
+        }
+    }
 }

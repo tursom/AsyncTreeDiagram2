@@ -10,6 +10,7 @@ import cn.tursom.web.netty.NettyAdvanceByteBuffer
 import cn.tursom.web.netty.NettyHttpContent
 import cn.tursom.web.router.SuspendRouterNode
 import cn.tursom.web.utils.EmptyHttpContent
+import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 import java.lang.Exception
 import java.util.logging.Level
@@ -20,7 +21,7 @@ import java.util.logging.Level
 class HtmlIndex : Mod() {
     private var cache: String = ""
     private var bytesCache: ByteArray = ByteArray(0)
-    private var nettyCache: NettyAdvanceByteBuffer? = null
+    private var nettyCache: ByteBuf? = null
     private var cacheTime: Long = 0
 
     override suspend fun receiveMessage(message: Any?, environment: Environment): Any? {
@@ -70,9 +71,8 @@ class HtmlIndex : Mod() {
                 cache = stringBuilder.toString()
                 cacheTime = System.currentTimeMillis()
                 bytesCache = cache.toByteArray()
-                val byteArrayCache = NettyAdvanceByteBuffer(Unpooled.directBuffer(bytesCache.size))
-                byteArrayCache.byteBuf.writeBytes(bytesCache)
-                this.nettyCache = byteArrayCache
+                nettyCache = Unpooled.directBuffer(bytesCache.size)
+                nettyCache!!.writeBytes(bytesCache)
             }} ms")
         }
         return cache
@@ -90,10 +90,11 @@ class HtmlIndex : Mod() {
             }
             handle(content, environment)
             content.setCacheTag(cacheTime)
-            if (content is NettyHttpContent)
-                content.finishHtml(200, nettyCache!!)
-            else
-                content.finishHtml(200, bytesCache)
+            if (content is NettyHttpContent) {
+                content.finishHtml(NettyAdvanceByteBuffer(nettyCache!!.retainedSlice()))
+            } else {
+                content.finishHtml(bytesCache)
+            }
         }
     }
 }

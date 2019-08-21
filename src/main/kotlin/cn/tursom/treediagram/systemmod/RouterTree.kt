@@ -10,14 +10,23 @@ import cn.tursom.web.HttpContent
 @ModPath("routerTree", "tree")
 class RouterTree : Mod() {
     override val modDescription: String = "返回路由树"
+    private var cacheTime: Long = 0
+    private var cache: ByteArray = ByteArray(0)
 
-    override suspend fun handle(content: HttpContent, environment: Environment) = environment.getRouterTree()
+    override suspend fun handle(content: HttpContent, environment: Environment): ByteArray {
+        if (cacheTime != environment.routerLastChangeTime) {
+            cache = environment.getRouterTree().toByteArray()
+            cacheTime = environment.routerLastChangeTime
+        }
+        return cache
+    }
+
     override suspend fun bottomHandle(content: HttpContent, environment: Environment) {
         if (content.getCacheTag()?.toLongOrNull() == environment.routerLastChangeTime) {
             content.usingCache()
         } else {
             content.setCacheTag(environment.routerLastChangeTime)
-            content.handleText(handle(content, environment))
+            content.finishText(handle(content, environment))
         }
     }
 }
