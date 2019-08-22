@@ -31,7 +31,9 @@ class ServiceManager(val adminEnvironment: AdminEnvironment) : ServiceManage {
         logger.log(Level.INFO, "user $user remove service ${service.serviceId}")
         val map = if (user != null) serviceMap.get(user) ?: return false
         else systemServiceMap
-        map.remove(service.serviceId)
+        service.serviceId.forEach {
+            map.remove(it)
+        }
         return true
     }
 
@@ -58,10 +60,12 @@ class ServiceManager(val adminEnvironment: AdminEnvironment) : ServiceManage {
     }
 
     private suspend fun registerSystemService(service: Service) {
-        val oldService = systemServiceMap.get(service.serviceId)
-        oldService?.destroyService(adminEnvironment)
-        service.initService(null, adminEnvironment)
-        systemServiceMap.set(service.serviceId, service)
+        service.serviceId.forEach {
+            val oldService = systemServiceMap.get(it)
+            oldService?.destroyService(adminEnvironment)
+            service.initService(null, adminEnvironment)
+            systemServiceMap.set(it, service)
+        }
     }
 
     private suspend fun registerUserService(user: String, service: Service) {
@@ -70,10 +74,12 @@ class ServiceManager(val adminEnvironment: AdminEnvironment) : ServiceManage {
             map = ReadWriteLockHashMap()
             serviceMap.set(user, map)
         }
-        val oldService = map.get(service.serviceId)
-        oldService?.destroyService(oldService.rightEnv(environment, adminEnvironment))
-        service.initService(user, service.rightEnv(environment, adminEnvironment))
-        map.set(service.serviceId, service)
+        service.serviceId.forEach {
+            val oldService = map.get(it)
+            oldService?.destroyService(oldService.rightEnv(environment, adminEnvironment))
+            service.initService(user, service.rightEnv(environment, adminEnvironment))
+            map.set(it, service)
+        }
     }
 
     companion object {

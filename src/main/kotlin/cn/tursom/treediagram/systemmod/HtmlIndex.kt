@@ -47,7 +47,7 @@ class HtmlIndex : Mod() {
             if (mod != null)
                 "&nbsp;&nbsp;&nbsp;&nbsp;<a href=\"/help/${
                 if (mod.user != null) "${mod.user}/" else ""
-                }${mod.modId}\">$mod</a>" else ""
+                }${mod.modId[0]}\">$mod</a>" else ""
             }<br />"
         )
 

@@ -32,11 +32,11 @@ class AutoLoadMod : Mod() {
             logger.log(Level.WARNING, "Auto load mod cant get right environment")
         }
         environment as AdminModEnvironment
-        val modManager = environment.modManager
         background {
             delay(100)
             @Suppress("SENSELESS_COMPARISON")
-            while (modManager == null) delay(20)
+            while (environment.modManager == null) delay(20)
+            val modManager = environment.modManager
             File(uploadRootPath).listFiles { it -> it.isDirectory }?.forEach { path ->
                 logger.info("自动加载模组正在加载路径：$path")
                 val configXml = File("$path/autoLoad.xml")

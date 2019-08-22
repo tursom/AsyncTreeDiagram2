@@ -6,7 +6,11 @@ import cn.tursom.treediagram.environment.Environment
  * 轻量级模组，只对内提供服务
  */
 interface Service {
-    val serviceId get() = javaClass.getAnnotation(ServiceId::class.java)?.id ?: javaClass.name!!
+    val serviceId
+        get() = javaClass.getAnnotation(ServiceId::class.java)?.id ?: arrayOf(
+            javaClass.name!!,
+            javaClass.name!!.split(".").last()
+        )
     val user: String?
     val adminService: Boolean get() = javaClass.getAnnotation(AdminService::class.java) != null
 

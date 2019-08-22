@@ -21,9 +21,11 @@ interface ModInterface {
     val modDescription: String get() = "no description"
     val modHelper: String get() = "no helper"
 
-    val modId get() = javaClass.getAnnotation(ModId::class.java)?.id ?: javaClass.name!!
-    val simpModId
-        get() = modId.split(".").last()
+    val modId
+        get() = javaClass.getAnnotation(ModId::class.java)?.id?.let {
+            if (it.isEmpty()) arrayOf(javaClass.name!!, javaClass.name.split(".").last())
+            else it
+        } ?: arrayOf(javaClass.name!!, javaClass.name.split(".").last())
 
     val routeList: List<String>
         get() {

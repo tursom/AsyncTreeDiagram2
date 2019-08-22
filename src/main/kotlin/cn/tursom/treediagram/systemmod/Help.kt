@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap
 class Help : Mod() {
     override val modDescription: String = "查看模组信息"
 
-    private val modCacheMap = ConcurrentHashMap<Pair<String?, String>, ModHelperCache>()
+    private val modCacheMap = ConcurrentHashMap<Pair<String?, Array<out String>>, ModHelperCache>()
 
     override suspend fun handle(content: HttpContent, environment: Environment): ByteArray? {
         environment as AdminEnvironment
@@ -37,9 +37,8 @@ class Help : Mod() {
         val help = mod.modHelper
         if (help.isNotEmpty()) sb.append(help)
         sb.append("\nid:")
-        sb.append("\n|- ${mod.modId}")
-        if (modManager.getMod(null, mod.simpModId) === mod) {
-            sb.append("\n|- ${mod.simpModId}")
+        mod.modId.forEach {
+            sb.append("\n|- $it")
         }
         sb.append("\nrouters:")
         if (user == null) {

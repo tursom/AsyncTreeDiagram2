@@ -16,9 +16,9 @@ abstract class Mod : ModInterface, Service {
     override val adminService: Boolean = javaClass.getAnnotation(AdminService::class.java) != null
     override val routeList: List<String> = super.routeList
     override val absRouteList: List<String> = super.absRouteList
-    override val modId: String = super.modId
-    override val simpModId: String = super.simpModId
+    override val modId: Array<out String> = super.modId
     override val modPermission: ModPermission? = super.modPermission
+    override val serviceId: Array<out String> = super.serviceId
 
     /**
      * 模组私有目录
@@ -26,7 +26,7 @@ abstract class Mod : ModInterface, Service {
      * 如果有模组想储存文件请尽量使用这个目录
      */
     val modPath by lazy {
-        val path = "mods/${this::class.java.name}/"
+        val path = "mods/${if (user != null) "$user/" else ""}${this::class.java.name}/"
         val dir = File(path)
         if (!dir.exists()) dir.mkdirs()
         path
@@ -62,7 +62,7 @@ abstract class Mod : ModInterface, Service {
     /** utils */
 
     override fun toString(): String {
-        return "$modId version $apiVersion-$version${if (modDescription.isEmpty()) "" else ": $modDescription"}"
+        return "${modId[0]} version $apiVersion-$version${if (modDescription.isEmpty()) "" else ": $modDescription"}"
     }
 
     companion object {

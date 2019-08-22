@@ -75,8 +75,9 @@ class ModManager(
     override suspend fun getSystemMod(): Set<String> {
         val idSet = HashSet<String>()
         systemModMap.forEach { _: String, u: ModInterface ->
-            idSet.add(u.modId)
-            idSet.add(u.simpModId)
+            u.modId.forEach {
+                idSet.add(it)
+            }
         }
         return idSet
     }
@@ -84,8 +85,9 @@ class ModManager(
     override suspend fun getUserMod(user: String?): Set<String>? {
         val idSet = HashSet<String>()
         userModMapMap.get(user ?: return null)?.forEach { _: String, u: ModInterface ->
-            idSet.add(u.modId)
-            idSet.add(u.simpModId)
+            u.modId.forEach {
+                idSet.add(it)
+            }
         }
         return idSet
 
@@ -115,8 +117,9 @@ class ModManager(
         mod.init(null, parentEnvironment)
 
         //将模组的信息加载到系统中
-        systemModMap.set(mod.modId, mod)
-        systemModMap.set(mod.modId.split('.').last(), mod)
+        mod.modId.forEach {
+            systemModMap.set(it, mod)
+        }
 
         parentEnvironment.addRouter(mod, null)
 
@@ -161,8 +164,9 @@ class ModManager(
             modMap
         })
 
-        userModMap.set(mod.modId, mod)
-        userModMap.set(mod.simpModId, mod)
+        mod.modId.forEach {
+            userModMap.set(it, mod)
+        }
 
         parentEnvironment.addRouter(mod, user)
 
@@ -175,7 +179,7 @@ class ModManager(
             }
         }
 
-        return mod.modId
+        return mod.modId[0]
     }
 
     /**
@@ -191,20 +195,19 @@ class ModManager(
         logger.info("user $user try remove mod: $mod")
 
         val userModMap = userModMapMap.get(user) ?: return false
-        val modObject = userModMap.get(mod.modId) ?: return false
         logger.info("user $user remove mod: $mod")
         try {
-            modObject.destroy(environment)
+            mod.destroy(environment)
         } catch (e: Exception) {
             e.printStackTrace()
         }
-        if (userModMap.contains(modObject.modId)) {
-            userModMap.remove(modObject.modId)
-            if (modObject === userModMap.get(modObject.modId.split('.').last()))
-                userModMap.remove(modObject.modId.split('.').last())
+
+        mod.modId.forEach {
+            if (mod === userModMap.get(it))
+                userModMap.remove(it)
         }
 
-        parentEnvironment.removeRouter(modObject, user)
+        parentEnvironment.removeRouter(mod, user)
 
         modEnvLastChangeTime = System.currentTimeMillis()
 
@@ -222,20 +225,18 @@ class ModManager(
      */
     private suspend fun removeSystemMod(mod: ModInterface): Boolean {
         logger.info("try remove system mod: $mod")
-        val modObject = systemModMap.get(mod.modId) ?: return false
         logger.info("remove system mod: $mod")
         try {
-            modObject.destroy(parentEnvironment)
+            mod.destroy(parentEnvironment)
         } catch (e: Exception) {
             e.printStackTrace()
         }
-        if (systemModMap.contains(modObject.modId)) {
-            systemModMap.remove(modObject.modId)
-            if (modObject === systemModMap.get(modObject.modId.split('.').last()))
-                systemModMap.remove(modObject.modId.split('.').last())
+
+        mod.modId.forEach {
+            if (mod === systemModMap.get(it)) systemModMap.remove(it)
         }
 
-        parentEnvironment.removeRouter(modObject, null)
+        parentEnvironment.removeRouter(mod, null)
 
         modEnvLastChangeTime = System.currentTimeMillis()
 
