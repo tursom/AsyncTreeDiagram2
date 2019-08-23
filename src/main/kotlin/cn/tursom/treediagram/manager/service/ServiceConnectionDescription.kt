@@ -9,8 +9,8 @@ import kotlinx.coroutines.withTimeout
 class ServiceConnectionDescription(
     val service: Service,
     private val environment: Environment,
-    private val clientChannel: Channel<Any> = Channel(),
-    private val serverChannel: Channel<Any> = Channel()
+    private var clientChannel: Channel<Any> = Channel(),
+    private var serverChannel: Channel<Any> = Channel()
 ) : Runnable {
     override fun run() {
         background {
@@ -24,8 +24,19 @@ class ServiceConnectionDescription(
         }
     }
 
-    val clientConnection = DefaultServiceConnection(this, serverChannel, clientChannel)
-    private val serverConnection = DefaultServiceConnection(this, clientChannel, serverChannel)
+    val clientConnection get() = DefaultServiceConnection(this, serverChannel, clientChannel)
+    private val serverConnection get() = DefaultServiceConnection(this, clientChannel, serverChannel)
+
+    fun newChanel() {
+        clientChannel = Channel()
+        serverChannel = Channel()
+
+        clientConnection.sendChannel = serverChannel
+        clientConnection.recvChannel = clientChannel
+
+        serverConnection.sendChannel = clientChannel
+        serverConnection.recvChannel = serverChannel
+    }
 
     fun close() {
         clientChannel.close()

@@ -13,7 +13,7 @@ import cn.tursom.web.HttpContent
 
 @AbsoluteModPath("echo", "echo/*", "echo/:message")
 @ModPath("echo", "echo/*", "echo/:message")
-@ServiceId("Echo")
+@ServiceId("Echo", "echo")
 @RegisterService
 class Echo : Mod() {
     override val modDescription: String = "原样返回:message"

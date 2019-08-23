@@ -1,16 +1,16 @@
 package cn.tursom.treediagram.manager.mod
 
 import cn.tursom.treediagram.environment.AdminEnvironment
-import cn.tursom.treediagram.environment.ModManage
 import cn.tursom.treediagram.environment.Environment
+import cn.tursom.treediagram.environment.ModManage
 import cn.tursom.treediagram.mod.ModInterface
 import cn.tursom.treediagram.service.RegisterService
 import cn.tursom.treediagram.service.Service
 import cn.tursom.treediagram.utils.ListClassLoader
 import cn.tursom.treediagram.utils.ModLoadException
-import cn.tursom.utils.asynclock.AsyncRWLockAbstractMap
-import cn.tursom.utils.asynclock.ReadWriteLockHashMap
-import cn.tursom.utils.asynclock.WriteLockHashMap
+import cn.tursom.utils.datastruct.async.ReadWriteLockHashMap
+import cn.tursom.utils.datastruct.async.WriteLockHashMap
+import cn.tursom.utils.datastruct.async.interfaces.AsyncPotableMap
 import cn.tursom.web.router.SuspendRouter
 import kotlinx.coroutines.runBlocking
 import java.util.logging.Logger
@@ -21,8 +21,8 @@ class ModManager(
 ) : ModManage {
     override val modManager: ModManager = this
     override val logger = Logger.getLogger("ModManager")!!
-    override val systemModMap: AsyncRWLockAbstractMap<String, ModInterface> = WriteLockHashMap()
-    override val userModMapMap: AsyncRWLockAbstractMap<String, AsyncRWLockAbstractMap<String, ModInterface>> =
+    override val systemModMap: AsyncPotableMap<String, ModInterface> = WriteLockHashMap()
+    override val userModMapMap: AsyncPotableMap<String, AsyncPotableMap<String, ModInterface>> =
         WriteLockHashMap()
     private val environment: Environment = object : Environment by parentEnvironment {}
 
@@ -74,20 +74,22 @@ class ModManager(
 
     override suspend fun getSystemMod(): Set<String> {
         val idSet = HashSet<String>()
-        systemModMap.forEach { _: String, u: ModInterface ->
+        systemModMap.forEach { (_: String, u: ModInterface) ->
             u.modId.forEach {
                 idSet.add(it)
             }
+            true
         }
         return idSet
     }
 
     override suspend fun getUserMod(user: String?): Set<String>? {
         val idSet = HashSet<String>()
-        userModMapMap.get(user ?: return null)?.forEach { _: String, u: ModInterface ->
+        userModMapMap.get(user ?: return null)?.forEach { (_: String, u: ModInterface) ->
             u.modId.forEach {
                 idSet.add(it)
             }
+            true
         }
         return idSet
 
@@ -99,7 +101,7 @@ class ModManager(
      */
     private suspend fun loadMod(mod: ModInterface) {
         //输出日志信息
-        logger.info("loading mod: $mod, mod permission: ${mod.modPermission}")
+        logger.info("loading mod: ${mod.javaClass}, mod permission: ${mod.modPermission}")
 
         mod.require?.forEach {
             val parentMod = systemModMap.get(it.modId) ?: throw ModLoadException("mod ${it.modId} mot found")
@@ -129,6 +131,7 @@ class ModManager(
             try {
                 parentEnvironment.registerService(null, mod)
             } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }
@@ -139,7 +142,7 @@ class ModManager(
      */
     suspend fun loadMod(user: String, mod: ModInterface): String {
         // 输出日志信息
-        logger.info("user: $user loading mod: ${mod.modId}, mod permission: ${mod.modPermission}")
+        logger.info("user: $user loading mod: ${mod.javaClass}, mod permission: ${mod.modPermission}")
 
         mod.require?.forEach {
             val parentMod = systemModMap.get(it.modId) ?: userModMapMap.get(user)?.get(it.modId)
@@ -176,6 +179,7 @@ class ModManager(
             try {
                 parentEnvironment.registerService(user, mod)
             } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
 
@@ -224,8 +228,7 @@ class ModManager(
      * 卸载模组
      */
     private suspend fun removeSystemMod(mod: ModInterface): Boolean {
-        logger.info("try remove system mod: $mod")
-        logger.info("remove system mod: $mod")
+        logger.info("remove system mod: ${mod.javaClass}")
         try {
             mod.destroy(parentEnvironment)
         } catch (e: Exception) {
@@ -267,8 +270,9 @@ class ModManager(
         val sb = StringBuilder()
         sb.append("system\n")
         val infoMap = HashMap<ModInterface, String>()
-        systemModMap.forEach { t, u ->
+        systemModMap.forEach { (t, u) ->
             infoMap[u] = (infoMap[u] ?: "") + "\n|  id=$t"
+            true
         }
         infoMap.forEach { (t, u) ->
             sb.append("|- $t$u\n")
@@ -289,8 +293,9 @@ class ModManager(
         }
         sb.append("$user\n")
         val infoMap = HashMap<ModInterface, String>()
-        userModMapMap.get(user)?.forEach { t, u ->
+        userModMapMap.get(user)?.forEach { (t, u) ->
             infoMap[u] = (infoMap[u] ?: "") + "\n|  id=$t"
+            true
         }
         infoMap.forEach { (t, u) ->
             sb.append("|- $t$u\n")
@@ -309,15 +314,17 @@ class ModManager(
                 val sb = StringBuilder()
                 sb.append(getSystemTree())
                 if (userModMapMap.isNotEmpty()) sb.append("user\n")
-                userModMapMap.forEach { t, u ->
+                userModMapMap.forEach { (t, u) ->
                     sb.append("|- $t\n")
                     val infoMap = HashMap<ModInterface, String>()
-                    u.forEach { id, mod ->
+                    u.forEach { (id, mod) ->
                         infoMap[mod] = (infoMap[mod] ?: "") + "\n|  |  id=$id"
+                        true
                     }
                     infoMap.forEach { (t, u) ->
                         sb.append("|  |- $t$u\n")
                     }
+                    true
                 }
                 cache = sb.toString()
                 cacheTime = System.currentTimeMillis()

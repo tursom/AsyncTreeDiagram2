@@ -39,8 +39,9 @@ class LoadedMod : Mod() {
         if (cacheTime < environment.modEnvLastChangeTime) {
             environment as AdminModEnvironment
             val pathSet = HashMap<String, Set<String>>()
-            environment.modManager.userModMapMap.forEach { s, _ ->
-                pathSet[s] = environment.getUserMod(s) ?: return@forEach
+            environment.modManager.userModMapMap.forEach { (s, _) ->
+                pathSet[s] = environment.getUserMod(s) ?: return@forEach true
+                true
             }
             cache = LoadedModData(environment.getSystemMod(), pathSet)
             cacheTime = System.currentTimeMillis()

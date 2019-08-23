@@ -19,6 +19,8 @@ abstract class Mod : ModInterface, Service {
     override val modId: Array<out String> = super.modId
     override val modPermission: ModPermission? = super.modPermission
     override val serviceId: Array<out String> = super.serviceId
+    override val modDescription: String = super.modDescription
+    override val modHelper: String = super.modHelper
 
     /**
      * 模组私有目录
@@ -26,7 +28,7 @@ abstract class Mod : ModInterface, Service {
      * 如果有模组想储存文件请尽量使用这个目录
      */
     val modPath by lazy {
-        val path = "mods/${if (user != null) "$user/" else ""}${this::class.java.name}/"
+        val path = "mods/${if (user != null) "user/$user/" else "syste/"}${this::class.java.name}/"
         val dir = File(path)
         if (!dir.exists()) dir.mkdirs()
         path
@@ -39,24 +41,24 @@ abstract class Mod : ModInterface, Service {
      */
     override suspend fun init(user: String?, environment: Environment) {
         userField.set(this, user)
-        environment.logger.log(Level.INFO, "mod $modId init by $user")
+        environment.logger.log(Level.INFO, "mod $javaClass init by $user")
     }
 
     /**
      * 当模组生命周期结束时被调用
      */
     override suspend fun destroy(environment: Environment) {
-        environment.logger.log(Level.INFO, "mod $modId destroy")
+        environment.logger.log(Level.INFO, "mod $javaClass destroy")
     }
 
     /** service 生命周期 */
 
     override suspend fun initService(user: String?, environment: Environment) {
-        environment.logger.log(Level.INFO, "service $serviceId init")
+        environment.logger.log(Level.INFO, "service $javaClass init")
     }
 
     override suspend fun destroyService(environment: Environment) {
-        environment.logger.log(Level.INFO, "service $serviceId destroy")
+        environment.logger.log(Level.INFO, "service $javaClass destroy")
     }
 
     /** utils */

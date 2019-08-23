@@ -1,12 +1,12 @@
 package cn.tursom.treediagram.environment
 
 import cn.tursom.treediagram.mod.ModInterface
-import cn.tursom.utils.asynclock.AsyncLockMap
+import cn.tursom.utils.datastruct.async.interfaces.AsyncMap
 
 interface ModManage : ModEnvironment {
     val modManager: ModManage
-    val systemModMap: AsyncLockMap<out String, out ModInterface>
-    val userModMapMap: AsyncLockMap<out String, out AsyncLockMap<out String, out ModInterface>>
+    val systemModMap: AsyncMap<out String, out ModInterface>
+    val userModMapMap: AsyncMap<out String, out AsyncMap<out String, out ModInterface>>
 
     suspend fun getMod(user: String?, modId: String): ModInterface?
     suspend fun getSystemMod(): Set<String>

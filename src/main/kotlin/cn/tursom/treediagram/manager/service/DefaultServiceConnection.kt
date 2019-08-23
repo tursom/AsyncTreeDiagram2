@@ -2,14 +2,20 @@ package cn.tursom.treediagram.manager.service
 
 import cn.tursom.treediagram.service.ServiceConnection
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ClosedSendChannelException
 
 class DefaultServiceConnection(
     private val parent: ServiceConnectionDescription,
-    private val sendChannel: Channel<Any>,
-    private val recvChannel: Channel<Any>
+    var sendChannel: Channel<Any>,
+    var recvChannel: Channel<Any>
 ) : ServiceConnection {
     override suspend fun send(message: Any) {
-        sendChannel.send(message)
+        try {
+            sendChannel.send(message)
+        } catch (e: ClosedSendChannelException) {
+            parent.newChanel()
+            sendChannel.send(message)
+        }
     }
 
     @Suppress("UNCHECKED_CAST")

@@ -18,8 +18,9 @@ interface ModInterface {
     val gson get() = Json.gson
     val prettyGson get() = Json.prettyGson
 
-    val modDescription: String get() = "no description"
-    val modHelper: String get() = "no helper"
+    val modDescription: String
+        get() = javaClass.getAnnotation(ModDescription::class.java)?.description ?: "no description"
+    val modHelper: String get() = javaClass.getAnnotation(ModHelper::class.java)?.helper ?: "no description"
 
     val modId
         get() = javaClass.getAnnotation(ModId::class.java)?.id?.let {

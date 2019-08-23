@@ -16,13 +16,13 @@ import cn.tursom.treediagram.user.UserUtils
 import cn.tursom.treediagram.utils.Config
 import cn.tursom.treediagram.utils.ModException
 import cn.tursom.treediagram.utils.WrongTokenException
-import cn.tursom.utils.asynclock.AsyncLockMap
 import cn.tursom.utils.background
+import cn.tursom.utils.datastruct.async.interfaces.AsyncPotableMap
 import cn.tursom.utils.randomInt
 import cn.tursom.utils.xml.Xml
-import cn.tursom.web.ExceptionContent
 import cn.tursom.web.HttpContent
 import cn.tursom.web.HttpHandler
+import cn.tursom.web.netty.NettyExceptionContent
 import cn.tursom.web.netty.NettyHttpContent
 import kotlinx.coroutines.runBlocking
 import java.io.File
@@ -31,7 +31,8 @@ import java.util.logging.FileHandler
 import java.util.logging.Level
 import java.util.logging.Logger
 
-class TreeDiagramHttpHandler(val config: Config) : HttpHandler<NettyHttpContent> {
+@Suppress("MemberVisibilityCanBePrivate")
+class TreeDiagramHttpHandler(val config: Config) : HttpHandler<NettyHttpContent, NettyExceptionContent> {
     constructor(configPath: String = "config.xml") : this(File(configPath))
     constructor(configFile: File) : this({
         if (!configFile.exists()) {
@@ -79,14 +80,13 @@ class TreeDiagramHttpHandler(val config: Config) : HttpHandler<NettyHttpContent>
     val routerManager = RouterManager(logger)
     @Suppress("RedundantOverride")
     val adminEnvironment: AdminEnvironment = object : AdminEnvironment, RouterManage by routerManager {
-        //override val router: SuspendRouter<ModInterface> get() = modManager.router
         override val logger: Logger = this@TreeDiagramHttpHandler.logger
         override val modManager: ModManager get() = this@TreeDiagramHttpHandler.modManager
         override val config: Config = this@TreeDiagramHttpHandler.config
         override val fileHandler: FileHandler = this@TreeDiagramHttpHandler.fileHandler
         override val modEnvLastChangeTime: Long get() = modManager.modEnvLastChangeTime
-        override val systemModMap: AsyncLockMap<out String, out ModInterface> get() = modManager.systemModMap
-        override val userModMapMap: AsyncLockMap<out String, out AsyncLockMap<out String, out ModInterface>> get() = modManager.userModMapMap
+        override val systemModMap: AsyncPotableMap<String, ModInterface> get() = modManager.systemModMap
+        override val userModMapMap: AsyncPotableMap<String, AsyncPotableMap<String, ModInterface>> get() = modManager.userModMapMap
 
         override suspend fun registerUser(content: HttpContent): String {
             return UserUtils.register(database, secretKey, content, logger, this, newServer)
@@ -107,7 +107,6 @@ class TreeDiagramHttpHandler(val config: Config) : HttpHandler<NettyHttpContent>
             return TokenData.getGuestToken(secretKey)
         }
 
-        //override suspend fun getRouterTree(): String = modManager.getRouterTree()
         override suspend fun getMod(user: String?, modId: String) = modManager.getMod(user, modId)
 
         override suspend fun getSystemMod(): Set<String> = modManager.getSystemMod()
@@ -129,19 +128,22 @@ class TreeDiagramHttpHandler(val config: Config) : HttpHandler<NettyHttpContent>
             return serviceManager.call(user, serviceId, message, timeout)
         }
 
+        override suspend fun getCaller(user: String?, serviceId: String): ServiceCaller? {
+            return serviceManager.getCaller(user, serviceId)
+        }
+
         override suspend fun connect(user: String?, serviceId: String): ServiceConnection? {
             return serviceManager.connect(user, serviceId)
         }
     }
-    val modManager = ModManager(adminEnvironment, routerManager.router)
     val serviceManager = ServiceManager(adminEnvironment)
+    val modManager = ModManager(adminEnvironment, routerManager.router)
 
-    private val environment: Environment = object : Environment by adminEnvironment {}
-    private val adminModEnvironment: AdminModEnvironment = object : AdminModEnvironment by adminEnvironment {}
-    private val adminRouterEnvironment: AdminRouterEnvironment = object : AdminRouterEnvironment by adminEnvironment {}
-    private val adminServiceEnvironment: AdminServiceEnvironment =
-        object : AdminServiceEnvironment by adminEnvironment {}
-    private val adminUserEnvironment = object : AdminUserEnvironment by adminEnvironment {}
+    val environment: Environment = object : Environment by adminEnvironment {}
+    val adminModEnvironment: AdminModEnvironment = object : AdminModEnvironment by adminEnvironment {}
+    val adminRouterEnvironment: AdminRouterEnvironment = object : AdminRouterEnvironment by adminEnvironment {}
+    val adminServiceEnvironment: AdminServiceEnvironment = object : AdminServiceEnvironment by adminEnvironment {}
+    val adminUserEnvironment = object : AdminUserEnvironment by adminEnvironment {}
 
     override fun handle(content: NettyHttpContent) = background {
         logger.log(Level.INFO, "${content.clientIp} require ${content.httpMethod} ${content.uri}")
