@@ -31,7 +31,11 @@ class ModLoader private constructor(
     suspend fun load(): List<String> {
         val loadedMod = ArrayList<String>()
         className.forEach { className ->
-            loadSingleMod(className, loadedMod)
+            try {
+                loadSingleMod(className, loadedMod)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
         return loadedMod
     }

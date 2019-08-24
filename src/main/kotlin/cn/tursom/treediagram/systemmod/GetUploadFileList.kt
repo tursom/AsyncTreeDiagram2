@@ -17,7 +17,7 @@ class GetUploadFileList : Module() {
 
     override suspend fun handle(content: HttpContent, environment: Environment): List<String> {
         val token = environment.token(content)
-        val uploadPath = "$uploadRootPath${token.usr}/"
+        val uploadPath = "$uploadPath${token.usr}/"
         val uploadDir = File(uploadPath)
         val fileList = ArrayList<String>()
         uploadDir.listFiles()?.forEach {

@@ -37,7 +37,7 @@ class AutoLoadMod : Module() {
             @Suppress("SENSELESS_COMPARISON")
             while (environment.modManager == null) delay(20)
             val modManager = environment.modManager
-            File(uploadRootPath).listFiles { it -> it.isDirectory }?.forEach { path ->
+            File("$uploadRootPath/user").listFiles { it -> it.isDirectory }?.forEach { path ->
                 logger.info("自动加载模组正在加载路径：$path")
                 val configXml = File("$path/autoLoad.xml")
                 if (!configXml.exists()) return@forEach
@@ -63,7 +63,7 @@ class AutoLoadMod : Module() {
 
         val token = environment.checkToken(content["token"]!!)
         val user = token.usr!!
-        val loadConfigPath = "$uploadRootPath$user/autoLoad.xml"
+        val loadConfigPath = "${getUploadPath(user)}/autoLoad.xml"
         val config = Xml.parse<AutoLoadConfig>(File(loadConfigPath))
 
         if (
@@ -91,8 +91,8 @@ class AutoLoadMod : Module() {
                 }
             }
         ) {
-            File("$uploadRootPath$user/autoLoad.xml").delete()
-            File("$uploadRootPath$user/autoLoad.xml").outputStream().use {
+            File("${getUploadPath(user)}$user/autoLoad.xml").delete()
+            File("${getUploadPath(user)}$user/autoLoad.xml").outputStream().use {
                 it.write(Xml.toXml(config, "config").toByteArray())
             }
         }

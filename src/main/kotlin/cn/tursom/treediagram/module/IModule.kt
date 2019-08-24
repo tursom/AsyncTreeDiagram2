@@ -4,6 +4,7 @@ import cn.tursom.treediagram.environment.Environment
 import cn.tursom.treediagram.utils.Json
 import cn.tursom.treediagram.utils.ModException
 import cn.tursom.web.HttpContent
+import java.io.File
 import java.io.PrintWriter
 import java.io.StringWriter
 
@@ -107,5 +108,24 @@ interface IModule {
     }
 
     val uploadRootPath get() = "upload/"
-    fun getUploadPath(user: String) = "$uploadRootPath$user/"
+    val uploadPath: String
+        get() {
+            val path = if (user == null) {
+                "upload/system/"
+            } else {
+                "upload/user/$user/"
+            }
+            if (!File(path).exists()) File(path).mkdirs()
+            return path
+        }
+
+    fun getUploadPath(user: String?): String {
+        val path = if (user == null) {
+            "upload/system/"
+        } else {
+            "upload/user/$user/"
+        }
+        if (!File(path).exists()) File(path).mkdirs()
+        return path
+    }
 }

@@ -1,7 +1,6 @@
 package cn.tursom.treediagram.module
 
 import cn.tursom.treediagram.environment.Environment
-import cn.tursom.treediagram.service.AdminService
 import cn.tursom.treediagram.service.BaseService
 import java.io.File
 import java.lang.reflect.Field
@@ -13,7 +12,6 @@ abstract class Module : IModule, BaseService() {
     override val require = javaClass.getAnnotation(Require::class.java)?.require
     override val version: Int = javaClass.getAnnotation(Version::class.java)?.version ?: 0
     override val apiVersion: Int = javaClass.getAnnotation(ApiVersion::class.java)?.version ?: 0
-    override val adminService: Boolean = javaClass.getAnnotation(AdminService::class.java) != null
     override val routeList: List<String> = super.routeList
     override val absRouteList: List<String> = super.absRouteList
     override val modId: Array<out String> = super.modId
@@ -21,6 +19,7 @@ abstract class Module : IModule, BaseService() {
     override val modDescription: String = super.modDescription
     override val modHelper: String = super.modHelper
     override val modUrlBase: String by lazy { super.modUrlBase }
+    override val uploadPath: String by lazy { super.uploadPath }
 
     /**
      * 模组私有目录
@@ -28,7 +27,7 @@ abstract class Module : IModule, BaseService() {
      * 如果有模组想储存文件请尽量使用这个目录
      */
     val modPath by lazy {
-        val path = "mods/${if (serviceUser != null) "user/$serviceUser/" else "syste/"}${this::class.java.name}/"
+        val path = "mods/${if (user != null) "user/$user" else "system"}/${this::class.java.name}/"
         val dir = File(path)
         if (!dir.exists()) dir.mkdirs()
         path

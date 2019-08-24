@@ -24,18 +24,8 @@ import java.io.File
 @AbsoluteModPath("upload/:type/:filename", "upload/:filename", "upload")
 @ModPath("upload/:type/:filename", "upload/:filename", "upload")
 @NeedBody(10 * 1024 * 1024)
-@RegisterService
 class Upload : Module() {
     override val modDescription: String = "上传文件"
-
-    override suspend fun receiveMessage(message: Any?, environment: Environment): Any? {
-        message as String?
-        return if (message == null) {
-            "$uploadRootPath/system"
-        } else {
-            "$uploadRootPath/$message"
-        }
-    }
 
     override suspend fun handle(content: HttpContent, environment: Environment): Any {
         val token = environment.token(content)

@@ -15,8 +15,7 @@ class Download : Module() {
 
     override suspend fun handle(content: HttpContent, environment: Environment): Any? {
         val token = environment.token(content)
-        val uploadPath = getUploadPath(token.usr!!)
-        val file = File("$uploadPath${content["fileName"] ?: return null}")
+        val file = File("${getUploadPath(token.usr!!)}${content["fileName"] ?: return null}")
         if (!file.exists()) return null
         content.setContextType("file")
         content.finishFile(file)
