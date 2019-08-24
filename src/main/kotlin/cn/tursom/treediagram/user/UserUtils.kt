@@ -13,7 +13,7 @@ import java.util.logging.Logger
 object UserUtils {
     suspend fun findUser(database: AsyncSqlHelper, username: String): UserData? {
         val adapter = AsyncSqlAdapter(UserData::class.java)
-        database.select(adapter, null, where = clause {
+        database.select(adapter, where = clause {
             !UserData::username equal !username
         }, maxCount = 1)
         return if (adapter.count() == 0) null
