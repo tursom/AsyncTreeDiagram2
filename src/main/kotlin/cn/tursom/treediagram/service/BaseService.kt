@@ -9,11 +9,11 @@ abstract class BaseService() : Service {
 
     override suspend fun initService(user: String?, environment: Environment) {
         userField.set(this, user)
-        environment.logger.info("service $serviceId init")
+        environment.logger.info("service ${javaClass.name} init")
     }
 
     override suspend fun destroyService(environment: Environment) {
-        environment.logger.info("service $serviceId destroy")
+        environment.logger.info("service ${javaClass.name} destroy")
     }
 
     companion object {
