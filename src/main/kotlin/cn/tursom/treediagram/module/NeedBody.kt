@@ -1,4 +1,4 @@
-package cn.tursom.treediagram.mod
+package cn.tursom.treediagram.module
 
 /**
  * 表示一个模组需要手动处理post发送过来的数据

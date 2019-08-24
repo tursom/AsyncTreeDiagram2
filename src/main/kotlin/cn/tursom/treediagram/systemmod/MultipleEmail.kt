@@ -2,12 +2,12 @@ package cn.tursom.treediagram.systemmod
 
 import cn.tursom.treediagram.datastruct.MultipleEmailData
 import cn.tursom.treediagram.environment.Environment
-import cn.tursom.treediagram.mod.Mod
+import cn.tursom.treediagram.module.Module
 import cn.tursom.utils.fromJson
 import cn.tursom.web.HttpContent
 
 
-class MultipleEmail : Mod() {
+class MultipleEmail : Module() {
     override val modDescription: String = "群发邮件，每个邮件的内容都不同"
 
     override suspend fun handle(content: HttpContent, environment: Environment): String {

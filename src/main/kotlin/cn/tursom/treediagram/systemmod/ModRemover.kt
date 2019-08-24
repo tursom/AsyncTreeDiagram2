@@ -1,16 +1,15 @@
 package cn.tursom.treediagram.systemmod
 
-import cn.tursom.treediagram.environment.AdminEnvironment
 import cn.tursom.treediagram.environment.AdminModEnvironment
 import cn.tursom.treediagram.environment.Environment
-import cn.tursom.treediagram.mod.*
+import cn.tursom.treediagram.module.*
 import cn.tursom.treediagram.utils.ModException
 import cn.tursom.web.HttpContent
 
 @AbsoluteModPath("removeMod", "removeMod/:modName", "removeMod/:system/:modName")
 @ModPath("removeMod", "removeMod/:modName", "removeMod/:system/:modName")
 @AdminMod(ModPermission.ModManage)
-class ModRemover : Mod() {
+class ModRemover : Module() {
     override val modDescription: String = "卸载模组"
     override val modHelper: String = "需要提供token\n" +
             "@param modName 模组名\n" +

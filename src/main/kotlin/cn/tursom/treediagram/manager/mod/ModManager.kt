@@ -3,7 +3,7 @@ package cn.tursom.treediagram.manager.mod
 import cn.tursom.treediagram.environment.AdminEnvironment
 import cn.tursom.treediagram.environment.Environment
 import cn.tursom.treediagram.environment.ModManage
-import cn.tursom.treediagram.mod.ModInterface
+import cn.tursom.treediagram.module.IModule
 import cn.tursom.treediagram.service.RegisterService
 import cn.tursom.treediagram.service.Service
 import cn.tursom.treediagram.utils.ListClassLoader
@@ -17,12 +17,12 @@ import java.util.logging.Logger
 
 class ModManager(
     val parentEnvironment: AdminEnvironment,
-    val router: SuspendRouter<ModInterface>
+    val router: SuspendRouter<IModule>
 ) : ModManage {
     override val modManager: ModManager = this
     override val logger = Logger.getLogger("ModManager")!!
-    override val systemModMap: AsyncPotableMap<String, ModInterface> = WriteLockHashMap()
-    override val userModMapMap: AsyncPotableMap<String, AsyncPotableMap<String, ModInterface>> =
+    override val systemModMap: AsyncPotableMap<String, IModule> = WriteLockHashMap()
+    override val userModMapMap: AsyncPotableMap<String, AsyncPotableMap<String, IModule>> =
         WriteLockHashMap()
     private val environment: Environment = object : Environment by parentEnvironment {}
 
@@ -32,7 +32,7 @@ class ModManager(
     init {
         // 加载系统模组
         runBlocking {
-            arrayOf<ModInterface>(
+            arrayOf<IModule>(
                 cn.tursom.treediagram.systemmod.Echo(),
                 cn.tursom.treediagram.systemmod.Email(),
                 cn.tursom.treediagram.systemmod.GroupEmail(),
@@ -66,7 +66,7 @@ class ModManager(
     }
 
 
-    override suspend fun registerMod(user: String?, mod: ModInterface): Boolean {
+    override suspend fun registerMod(user: String?, mod: IModule): Boolean {
         if (user != null) loadMod(user, mod)
         else loadMod(mod)
         return true
@@ -74,7 +74,7 @@ class ModManager(
 
     override suspend fun getSystemMod(): Set<String> {
         val idSet = HashSet<String>()
-        systemModMap.forEach { (_: String, u: ModInterface) ->
+        systemModMap.forEach { (_: String, u: IModule) ->
             u.modId.forEach {
                 idSet.add(it)
             }
@@ -85,7 +85,7 @@ class ModManager(
 
     override suspend fun getUserMod(user: String?): Set<String>? {
         val idSet = HashSet<String>()
-        userModMapMap.get(user ?: return null)?.forEach { (_: String, u: ModInterface) ->
+        userModMapMap.get(user ?: return null)?.forEach { (_: String, u: IModule) ->
             u.modId.forEach {
                 idSet.add(it)
             }
@@ -99,7 +99,7 @@ class ModManager(
      * 加载模组
      * 将模组的注册信息加载进系统中
      */
-    private suspend fun loadMod(mod: ModInterface) {
+    private suspend fun loadMod(mod: IModule) {
         //输出日志信息
         logger.info("loading mod: ${mod.javaClass}, mod permission: ${mod.modPermission}")
 
@@ -140,7 +140,7 @@ class ModManager(
      * 加载模组
      * 将模组的注册信息加载进系统中
      */
-    suspend fun loadMod(user: String, mod: ModInterface): String {
+    suspend fun loadMod(user: String, mod: IModule): String {
         // 输出日志信息
         logger.info("user: $user loading mod: ${mod.javaClass}, mod permission: ${mod.modPermission}")
 
@@ -162,7 +162,7 @@ class ModManager(
 
         // 将模组的信息加载到系统中
         val userModMap = (userModMapMap.get(user) ?: run {
-            val modMap = WriteLockHashMap<String, ModInterface>()
+            val modMap = WriteLockHashMap<String, IModule>()
             userModMapMap.set(user, modMap)
             modMap
         })
@@ -189,13 +189,13 @@ class ModManager(
     /**
      * 卸载模组
      */
-    override suspend fun removeMod(user: String?, mod: ModInterface): Boolean {
+    override suspend fun removeMod(user: String?, mod: IModule): Boolean {
         val rUser = mod.user ?: user
         return if (rUser != null) removeUserMod(mod, rUser)
         else removeSystemMod(mod)
     }
 
-    private suspend fun removeUserMod(mod: ModInterface, user: String): Boolean {
+    private suspend fun removeUserMod(mod: IModule, user: String): Boolean {
         logger.info("user $user try remove mod: $mod")
 
         val userModMap = userModMapMap.get(user) ?: return false
@@ -227,7 +227,7 @@ class ModManager(
     /**
      * 卸载模组
      */
-    private suspend fun removeSystemMod(mod: ModInterface): Boolean {
+    private suspend fun removeSystemMod(mod: IModule): Boolean {
         logger.info("remove system mod: ${mod.javaClass}")
         try {
             mod.destroy(parentEnvironment)
@@ -269,9 +269,9 @@ class ModManager(
         }
         val sb = StringBuilder()
         sb.append("system\n")
-        val infoMap = HashMap<ModInterface, String>()
+        val infoMap = HashMap<IModule, String>()
         systemModMap.forEach { (t, u) ->
-            infoMap[u] = (infoMap[u] ?: "") + "\n|  id=$t"
+            infoMap[u] = (infoMap[u] ?: "") + "\n|  id = $t"
             true
         }
         infoMap.forEach { (t, u) ->
@@ -292,9 +292,9 @@ class ModManager(
             }
         }
         sb.append("$user\n")
-        val infoMap = HashMap<ModInterface, String>()
+        val infoMap = HashMap<IModule, String>()
         userModMapMap.get(user)?.forEach { (t, u) ->
-            infoMap[u] = (infoMap[u] ?: "") + "\n|  id=$t"
+            infoMap[u] = (infoMap[u] ?: "") + "\n|  id = $t"
             true
         }
         infoMap.forEach { (t, u) ->
@@ -316,9 +316,9 @@ class ModManager(
                 if (userModMapMap.isNotEmpty()) sb.append("user\n")
                 userModMapMap.forEach { (t, u) ->
                     sb.append("|- $t\n")
-                    val infoMap = HashMap<ModInterface, String>()
+                    val infoMap = HashMap<IModule, String>()
                     u.forEach { (id, mod) ->
-                        infoMap[mod] = (infoMap[mod] ?: "") + "\n|  |  id=$id"
+                        infoMap[mod] = (infoMap[mod] ?: "") + "\n|  |  id = $id"
                         true
                     }
                     infoMap.forEach { (t, u) ->

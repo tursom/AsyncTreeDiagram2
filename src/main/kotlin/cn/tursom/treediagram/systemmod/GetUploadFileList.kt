@@ -1,9 +1,9 @@
 package cn.tursom.treediagram.systemmod
 
 import cn.tursom.treediagram.environment.Environment
-import cn.tursom.treediagram.mod.AbsoluteModPath
-import cn.tursom.treediagram.mod.Mod
-import cn.tursom.treediagram.mod.ModPath
+import cn.tursom.treediagram.module.AbsoluteModPath
+import cn.tursom.treediagram.module.Module
+import cn.tursom.treediagram.module.ModPath
 import cn.tursom.web.HttpContent
 import java.io.File
 
@@ -12,7 +12,7 @@ import java.io.File
  */
 @AbsoluteModPath("UploadFileList", "fileList")
 @ModPath("UploadFileList", "fileList")
-class GetUploadFileList : Mod() {
+class GetUploadFileList : Module() {
     override val modDescription: String = "获取上传的文件的列表"
 
     override suspend fun handle(content: HttpContent, environment: Environment): List<String> {

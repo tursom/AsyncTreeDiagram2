@@ -1,7 +1,7 @@
 package cn.tursom.treediagram.manager.mod
 
 import cn.tursom.treediagram.environment.ModManage
-import cn.tursom.treediagram.mod.ModInterface
+import cn.tursom.treediagram.module.IModule
 import cn.tursom.treediagram.utils.ListClassLoader
 import cn.tursom.utils.AsyncHttpRequest
 import java.io.File
@@ -40,9 +40,9 @@ class ModLoader private constructor(
         try {
             //获取一个指定模组的对象
             val modClass = classLoader.loadClass(className)
-            if (!ModInterface::class.java.isAssignableFrom(modClass)) return
+            if (!IModule::class.java.isAssignableFrom(modClass)) return
             val modObject = try {
-                modClass.newInstance() as ModInterface
+                modClass.newInstance() as IModule
             } catch (e: Exception) {
                 return
             }

@@ -1,11 +1,11 @@
 package cn.tursom.treediagram.environment
 
-import cn.tursom.treediagram.mod.ModInterface
+import cn.tursom.treediagram.module.IModule
 import cn.tursom.web.router.SuspendRouter
 
 interface RouterManage : RouterEnvironment {
-    val router: SuspendRouter<out ModInterface>
+    val router: SuspendRouter<out IModule>
 
-    suspend fun addRouter(mod: ModInterface, user: String?)
-    suspend fun removeRouter(mod: ModInterface, user: String?)
+    suspend fun addRouter(mod: IModule, user: String?)
+    suspend fun removeRouter(mod: IModule, user: String?)
 }

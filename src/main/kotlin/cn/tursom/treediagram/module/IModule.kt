@@ -1,4 +1,4 @@
-package cn.tursom.treediagram.mod
+package cn.tursom.treediagram.module
 
 import cn.tursom.treediagram.environment.Environment
 import cn.tursom.treediagram.utils.Json
@@ -8,7 +8,8 @@ import java.io.PrintWriter
 import java.io.StringWriter
 
 
-interface ModInterface {
+interface IModule {
+    val modUrlBase get() = if (user == null) "/mod/system/" else "/mod/user/$user/"
     val require: Array<out RequireInfo>? get() = javaClass.getAnnotation(Require::class.java)?.require
     val modPermission: ModPermission? get() = javaClass.getAnnotation(AdminMod::class.java)?.permission
     val prettyJson: Boolean get() = false

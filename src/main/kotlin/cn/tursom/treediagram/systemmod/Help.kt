@@ -2,7 +2,7 @@ package cn.tursom.treediagram.systemmod
 
 import cn.tursom.treediagram.environment.AdminEnvironment
 import cn.tursom.treediagram.environment.Environment
-import cn.tursom.treediagram.mod.*
+import cn.tursom.treediagram.module.*
 import cn.tursom.web.HttpContent
 import java.lang.ref.SoftReference
 import java.util.concurrent.ConcurrentHashMap
@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap
 @AbsoluteModPath("modInfo", "modInfo/:modId", "modInfo/:user/:modId", "help", "help/:modId", "help/:user/:modId")
 @ModPath("modInfo", "modInfo/:modId", "modInfo/:user/:modId", "help", "help/:modId", "help/:user/:modId")
 @AdminMod
-class Help : Mod() {
+class Help : Module() {
     override val modDescription: String = "查看模组信息"
 
     private val modCacheMap = ConcurrentHashMap<Pair<String?, Array<out String>>, ModHelperCache>()

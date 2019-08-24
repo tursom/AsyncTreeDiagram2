@@ -4,10 +4,10 @@ import cn.tursom.treediagram.environment.AdminModEnvironment
 import cn.tursom.treediagram.environment.Environment
 import cn.tursom.treediagram.environment.ModManage
 import cn.tursom.treediagram.manager.mod.ClassData
-import cn.tursom.treediagram.mod.AdminMod
-import cn.tursom.treediagram.mod.Mod
-import cn.tursom.treediagram.mod.ModPath
-import cn.tursom.treediagram.mod.ModPermission
+import cn.tursom.treediagram.module.AdminMod
+import cn.tursom.treediagram.module.Module
+import cn.tursom.treediagram.module.ModPath
+import cn.tursom.treediagram.module.ModPermission
 import cn.tursom.treediagram.utils.ModException
 import cn.tursom.utils.background
 import cn.tursom.utils.xml.Constructor
@@ -21,7 +21,7 @@ import java.util.logging.Level
 @Suppress("RedundantLambdaArrow")
 @ModPath("AutoLoadMod", "AutoLoadMod/:type", "AutoLoadMod/:type/:jar", "AutoLoadMod/:type/:jar/:className")
 @AdminMod(ModPermission.ModManage)
-class AutoLoadMod : Mod() {
+class AutoLoadMod : Module() {
     override val modDescription: String = "在系统启动时自动加载模组"
 
     override suspend fun init(user: String?, environment: Environment) {

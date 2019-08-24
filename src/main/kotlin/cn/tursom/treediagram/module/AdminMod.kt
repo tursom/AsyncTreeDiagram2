@@ -1,4 +1,4 @@
-package cn.tursom.treediagram.mod
+package cn.tursom.treediagram.module
 
 /**
  * 这个注解表示模组需要管理员权限

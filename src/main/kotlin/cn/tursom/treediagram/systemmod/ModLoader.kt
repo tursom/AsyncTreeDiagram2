@@ -2,10 +2,10 @@ package cn.tursom.treediagram.systemmod
 
 import cn.tursom.treediagram.environment.AdminEnvironment
 import cn.tursom.treediagram.environment.Environment
-import cn.tursom.treediagram.mod.AbsoluteModPath
-import cn.tursom.treediagram.mod.AdminMod
-import cn.tursom.treediagram.mod.Mod
-import cn.tursom.treediagram.mod.ModPath
+import cn.tursom.treediagram.module.AbsoluteModPath
+import cn.tursom.treediagram.module.AdminMod
+import cn.tursom.treediagram.module.Module
+import cn.tursom.treediagram.module.ModPath
 import cn.tursom.treediagram.manager.mod.ClassData
 import cn.tursom.treediagram.utils.ModException
 import cn.tursom.utils.fromJson
@@ -25,7 +25,7 @@ import cn.tursom.web.HttpContent
 @AbsoluteModPath("loadmod", "loadmod/:jarPath", "loadmod/:jarPath/:className", "loadmod/:jarPath/:className/:system")
 @ModPath("loadmod", "loadmod/:jarPath", "loadmod/:jarPath/:className", "loadmod/:jarPath/:className/:system")
 @AdminMod
-class ModLoader : Mod() {
+class ModLoader : Module() {
     override val modDescription: String = "加载模组"
     override val modHelper: String = "使用方法：\n" +
             "首先使用Upload模组上传到服务器目录\n" +

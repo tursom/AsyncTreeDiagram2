@@ -3,7 +3,7 @@ package cn.tursom.treediagram.systemmod
 import cn.tursom.treediagram.environment.AdminEnvironment
 import cn.tursom.treediagram.environment.AdminRouterEnvironment
 import cn.tursom.treediagram.environment.Environment
-import cn.tursom.treediagram.mod.*
+import cn.tursom.treediagram.module.*
 import cn.tursom.utils.usingTime
 import cn.tursom.web.HttpContent
 import cn.tursom.web.netty.NettyAdvanceByteBuffer
@@ -18,7 +18,7 @@ import java.util.logging.Level
 @AbsoluteModPath("", "index.html")
 @ModPath("", "index.html")
 @AdminMod(ModPermission.RouterManage)
-class HtmlIndex : Mod() {
+class HtmlIndex : Module() {
     private var cache: String = ""
     private var bytesCache: ByteArray = ByteArray(0)
     private var nettyCache: ByteBuf? = null
@@ -30,7 +30,7 @@ class HtmlIndex : Mod() {
     }
 
     private suspend fun toString(
-        node: SuspendRouterNode<out ModInterface>,
+        node: SuspendRouterNode<out IModule>,
         stringBuilder: StringBuilder,
         indentation: String
     ) {

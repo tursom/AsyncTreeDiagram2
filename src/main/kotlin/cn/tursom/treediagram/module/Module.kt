@@ -1,14 +1,14 @@
-package cn.tursom.treediagram.mod
+package cn.tursom.treediagram.module
 
 import cn.tursom.treediagram.environment.Environment
 import cn.tursom.treediagram.service.AdminService
-import cn.tursom.treediagram.service.Service
+import cn.tursom.treediagram.service.BaseService
 import java.io.File
 import java.lang.reflect.Field
 import java.util.logging.Level
 
 @Suppress("MemberVisibilityCanBePrivate", "unused")
-abstract class Mod : ModInterface, Service {
+abstract class Module : IModule, BaseService() {
     override val user: String? = null
     override val require = javaClass.getAnnotation(Require::class.java)?.require
     override val version: Int = javaClass.getAnnotation(Version::class.java)?.version ?: 0
@@ -18,9 +18,9 @@ abstract class Mod : ModInterface, Service {
     override val absRouteList: List<String> = super.absRouteList
     override val modId: Array<out String> = super.modId
     override val modPermission: ModPermission? = super.modPermission
-    override val serviceId: Array<out String> = super.serviceId
     override val modDescription: String = super.modDescription
     override val modHelper: String = super.modHelper
+    override val modUrlBase: String by lazy { super.modUrlBase }
 
     /**
      * 模组私有目录
@@ -28,7 +28,7 @@ abstract class Mod : ModInterface, Service {
      * 如果有模组想储存文件请尽量使用这个目录
      */
     val modPath by lazy {
-        val path = "mods/${if (user != null) "user/$user/" else "syste/"}${this::class.java.name}/"
+        val path = "mods/${if (serviceUser != null) "user/$serviceUser/" else "syste/"}${this::class.java.name}/"
         val dir = File(path)
         if (!dir.exists()) dir.mkdirs()
         path
@@ -51,16 +51,6 @@ abstract class Mod : ModInterface, Service {
         environment.logger.log(Level.INFO, "mod $javaClass destroy")
     }
 
-    /** service 生命周期 */
-
-    override suspend fun initService(user: String?, environment: Environment) {
-        environment.logger.log(Level.INFO, "service $javaClass init")
-    }
-
-    override suspend fun destroyService(environment: Environment) {
-        environment.logger.log(Level.INFO, "service $javaClass destroy")
-    }
-
     /** utils */
 
     override fun toString(): String {
@@ -69,7 +59,7 @@ abstract class Mod : ModInterface, Service {
 
     companion object {
         private val userField: Field = run {
-            val field = Mod::class.java.getDeclaredField("user")
+            val field = Module::class.java.getDeclaredField("user")
             field.isAccessible = true
             field
         }

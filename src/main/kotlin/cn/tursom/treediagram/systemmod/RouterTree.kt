@@ -1,14 +1,14 @@
 package cn.tursom.treediagram.systemmod
 
 import cn.tursom.treediagram.environment.Environment
-import cn.tursom.treediagram.mod.AbsoluteModPath
-import cn.tursom.treediagram.mod.Mod
-import cn.tursom.treediagram.mod.ModPath
+import cn.tursom.treediagram.module.AbsoluteModPath
+import cn.tursom.treediagram.module.Module
+import cn.tursom.treediagram.module.ModPath
 import cn.tursom.web.HttpContent
 
 @AbsoluteModPath("routerTree", "tree")
 @ModPath("routerTree", "tree")
-class RouterTree : Mod() {
+class RouterTree : Module() {
     override val modDescription: String = "返回路由树"
     private var cacheTime: Long = 0
     private var cache: ByteArray = ByteArray(0)

@@ -2,8 +2,8 @@ package cn.tursom.treediagram.systemmod
 
 import cn.tursom.treediagram.datastruct.EmailData
 import cn.tursom.treediagram.environment.Environment
-import cn.tursom.treediagram.mod.Mod
-import cn.tursom.treediagram.mod.ModPath
+import cn.tursom.treediagram.module.Module
+import cn.tursom.treediagram.module.ModPath
 import cn.tursom.utils.fromJson
 import cn.tursom.web.HttpContent
 import java.util.*
@@ -27,7 +27,7 @@ import java.util.*
  * attachment 附件（可选）
  */
 @ModPath("mail")
-class Email : Mod() {
+class Email : Module() {
     override val modDescription: String = "单发邮件"
 
     override suspend fun receiveMessage(message: Any?, environment: Environment): Any? {

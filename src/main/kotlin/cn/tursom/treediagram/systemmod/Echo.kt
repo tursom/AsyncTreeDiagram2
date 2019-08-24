@@ -2,9 +2,9 @@ package cn.tursom.treediagram.systemmod
 
 import cn.tursom.treediagram.environment.Environment
 import cn.tursom.treediagram.service.ServiceConnection
-import cn.tursom.treediagram.mod.AbsoluteModPath
-import cn.tursom.treediagram.mod.Mod
-import cn.tursom.treediagram.mod.ModPath
+import cn.tursom.treediagram.module.AbsoluteModPath
+import cn.tursom.treediagram.module.Module
+import cn.tursom.treediagram.module.ModPath
 import cn.tursom.treediagram.service.RegisterService
 import cn.tursom.treediagram.service.ServiceId
 import cn.tursom.treediagram.utils.ModException
@@ -15,7 +15,7 @@ import cn.tursom.web.HttpContent
 @ModPath("echo", "echo/*", "echo/:message")
 @ServiceId("Echo", "echo")
 @RegisterService
-class Echo : Mod() {
+class Echo : Module() {
     override val modDescription: String = "原样返回:message"
 
     override suspend fun receiveMessage(message: Any?, environment: Environment) = message

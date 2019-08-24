@@ -6,8 +6,8 @@ import cn.tursom.treediagram.environment.*
 import cn.tursom.treediagram.manager.mod.ModManager
 import cn.tursom.treediagram.manager.router.RouterManager
 import cn.tursom.treediagram.manager.service.ServiceManager
-import cn.tursom.treediagram.mod.ModInterface
-import cn.tursom.treediagram.mod.ModPermission
+import cn.tursom.treediagram.module.IModule
+import cn.tursom.treediagram.module.ModPermission
 import cn.tursom.treediagram.service.Service
 import cn.tursom.treediagram.service.ServiceConnection
 import cn.tursom.treediagram.user.TokenData
@@ -85,8 +85,8 @@ class TreeDiagramHttpHandler(val config: Config) : HttpHandler<NettyHttpContent,
         override val config: Config = this@TreeDiagramHttpHandler.config
         override val fileHandler: FileHandler = this@TreeDiagramHttpHandler.fileHandler
         override val modEnvLastChangeTime: Long get() = modManager.modEnvLastChangeTime
-        override val systemModMap: AsyncPotableMap<String, ModInterface> get() = modManager.systemModMap
-        override val userModMapMap: AsyncPotableMap<String, AsyncPotableMap<String, ModInterface>> get() = modManager.userModMapMap
+        override val systemModMap: AsyncPotableMap<String, IModule> get() = modManager.systemModMap
+        override val userModMapMap: AsyncPotableMap<String, AsyncPotableMap<String, IModule>> get() = modManager.userModMapMap
 
         override suspend fun registerUser(content: HttpContent): String {
             return UserUtils.register(database, secretKey, content, logger, this, newServer)
@@ -113,8 +113,8 @@ class TreeDiagramHttpHandler(val config: Config) : HttpHandler<NettyHttpContent,
         override suspend fun getUserMod(user: String?): Set<String>? = modManager.getUserMod(user)
         override suspend fun getModTree(user: String?): String = modManager.getModTree(user)
 
-        override suspend fun registerMod(user: String?, mod: ModInterface): Boolean = modManager.registerMod(user, mod)
-        override suspend fun removeMod(user: String?, mod: ModInterface): Boolean = modManager.removeMod(user, mod)
+        override suspend fun registerMod(user: String?, mod: IModule): Boolean = modManager.registerMod(user, mod)
+        override suspend fun removeMod(user: String?, mod: IModule): Boolean = modManager.removeMod(user, mod)
 
         override suspend fun registerService(user: String?, service: Service): Boolean {
             return serviceManager.registerService(user, service)

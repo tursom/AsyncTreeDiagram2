@@ -1,4 +1,4 @@
-package cn.tursom.treediagram.mod
+package cn.tursom.treediagram.module
 
 /**
  * 模组的相对路径，可以随着加载的用户动态的变动

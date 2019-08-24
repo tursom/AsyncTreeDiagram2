@@ -11,7 +11,7 @@ interface Service {
             javaClass.name!!,
             javaClass.name!!.split(".").last()
         )
-    val user: String?
+    val serviceUser: String?
     val adminService: Boolean get() = javaClass.getAnnotation(AdminService::class.java) != null
 
     /**

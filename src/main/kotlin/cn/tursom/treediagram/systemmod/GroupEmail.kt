@@ -2,7 +2,7 @@ package cn.tursom.treediagram.systemmod
 
 import cn.tursom.treediagram.datastruct.GroupEmailData
 import cn.tursom.treediagram.environment.Environment
-import cn.tursom.treediagram.mod.Mod
+import cn.tursom.treediagram.module.Module
 import cn.tursom.utils.fromJson
 import cn.tursom.web.HttpContent
 import com.google.gson.Gson
@@ -12,7 +12,7 @@ import java.util.*
  * 用于群发邮件的模组
  * 为每个人发送内容相同的邮件
  */
-class GroupEmail : Mod() {
+class GroupEmail : Module() {
     override val modDescription: String = "群发邮件，为每个人发送内容相同的邮件"
 
     override suspend fun handle(content: HttpContent, environment: Environment): Any? {

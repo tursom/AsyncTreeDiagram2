@@ -6,10 +6,10 @@ log
 config.xml
 gradlew
 gradlew.bat
-TreeDiagram.db
 src/main/java/
 src/main/resources/
 src/test/
 *.jar
 upload
 mods
+*.db

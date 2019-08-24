@@ -2,7 +2,7 @@ package cn.tursom.treediagram.systemmod
 
 import cn.tursom.treediagram.environment.AdminModEnvironment
 import cn.tursom.treediagram.environment.Environment
-import cn.tursom.treediagram.mod.*
+import cn.tursom.treediagram.module.*
 import cn.tursom.treediagram.service.RegisterService
 import cn.tursom.treediagram.utils.ModException
 import cn.tursom.web.HttpContent
@@ -12,7 +12,7 @@ import cn.tursom.web.HttpContent
 @AdminMod(ModPermission.ModManage)
 @RegisterService
 @ApiVersion(1)
-class LoadedMod : Mod() {
+class LoadedMod : Module() {
     override val modDescription: String = "返回已经加载的模组"
     @Volatile
     var cacheTime: Long = 0

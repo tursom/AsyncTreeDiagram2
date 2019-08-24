@@ -1,20 +1,16 @@
 package cn.tursom.treediagram.systemmod
 
 import cn.tursom.treediagram.environment.Environment
-import cn.tursom.treediagram.mod.AbsoluteModPath
-import cn.tursom.treediagram.mod.Mod
-import cn.tursom.treediagram.mod.ModPath
-import cn.tursom.utils.AsyncFile
-import cn.tursom.utils.bytebuffer.AdvanceByteBuffer
-import cn.tursom.utils.bytebuffer.NioAdvanceByteBuffer
+import cn.tursom.treediagram.module.AbsoluteModPath
+import cn.tursom.treediagram.module.Module
+import cn.tursom.treediagram.module.ModPath
 import cn.tursom.web.HttpContent
 import java.io.File
-import java.io.RandomAccessFile
 
 
 @AbsoluteModPath("download", "download/:fileName", "download/*")
 @ModPath("download", "download/:fileName", "download/*")
-class Download : Mod() {
+class Download : Module() {
     override val modDescription: String = "下载文件"
 
     override suspend fun handle(content: HttpContent, environment: Environment): Any? {
