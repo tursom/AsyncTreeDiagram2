@@ -1,5 +1,7 @@
 package cn.tursom.treediagram.manager.mod
 
+import cn.tursom.aop.ProxyHandler
+import cn.tursom.aop.aspect.Aspect
 import cn.tursom.treediagram.environment.AdminEnvironment
 import cn.tursom.treediagram.environment.Environment
 import cn.tursom.treediagram.environment.ModManage
@@ -8,9 +10,14 @@ import cn.tursom.treediagram.service.RegisterService
 import cn.tursom.treediagram.service.Service
 import cn.tursom.treediagram.utils.ListClassLoader
 import cn.tursom.treediagram.utils.ModLoadException
+import cn.tursom.utils.cache.DefaultAsyncPotableCacheMap
+import cn.tursom.utils.cache.interfaces.AsyncPotableCacheMap
 import cn.tursom.utils.datastruct.async.ReadWriteLockHashMap
 import cn.tursom.utils.datastruct.async.WriteLockHashMap
+import cn.tursom.utils.datastruct.async.collections.AsyncMapSet
 import cn.tursom.utils.datastruct.async.interfaces.AsyncPotableMap
+import cn.tursom.utils.datastruct.async.interfaces.AsyncPotableSet
+import cn.tursom.utils.datastruct.async.interfaces.AsyncSet
 import cn.tursom.web.router.SuspendRouter
 import kotlinx.coroutines.runBlocking
 import java.util.logging.Logger
@@ -21,9 +28,13 @@ class ModManager(
 ) : ModManage {
     override val modManager: ModManager = this
     override val logger = Logger.getLogger("ModManager")!!
-    override val systemModMap: AsyncPotableMap<String, IModule> = WriteLockHashMap()
-    override val userModMapMap: AsyncPotableMap<String, AsyncPotableMap<String, IModule>> =
-        WriteLockHashMap()
+    override val systemModMap: AsyncPotableCacheMap<String, IModule> = DefaultAsyncPotableCacheMap(5)
+    override val userModMapMap: AsyncPotableCacheMap<String, AsyncPotableMap<String, IModule>> =
+        DefaultAsyncPotableCacheMap(5)
+    private val naturalSystemModMap: AsyncPotableCacheMap<String, IModule> = DefaultAsyncPotableCacheMap(5)
+    private val naturalUserModMapMap: AsyncPotableCacheMap<String, AsyncPotableMap<String, IModule>> =
+        DefaultAsyncPotableCacheMap(5)
+    override val aspectMap: AsyncPotableCacheMap<String?, AsyncPotableSet<Aspect>> = DefaultAsyncPotableCacheMap(5)
     private val environment: Environment = object : Environment by parentEnvironment {}
 
     @Volatile
@@ -95,6 +106,17 @@ class ModManager(
 
     }
 
+    private suspend fun enhanceMod(mod: IModule, aspectSet: AsyncSet<Aspect>): IModule {
+        var enhancedMod = mod
+        aspectSet.forEach {
+            if (it.pointcut.matchClass(mod.javaClass)) {
+                enhancedMod = ProxyHandler.proxyEnhance(enhancedMod, it) as IModule
+            }
+            true
+        }
+        return enhancedMod
+    }
+
     /**
      * 加载模组
      * 将模组的注册信息加载进系统中
@@ -118,11 +140,6 @@ class ModManager(
         //调用模组的初始化函数
         mod.init(null, parentEnvironment)
 
-        //将模组的信息加载到系统中
-        mod.modId.forEach {
-            systemModMap.set(it, mod)
-        }
-
         parentEnvironment.addRouter(mod, null)
 
         modEnvLastChangeTime = System.currentTimeMillis()
@@ -134,13 +151,22 @@ class ModManager(
                 e.printStackTrace()
             }
         }
+
+        val aspectSet = getAspectSet(null)
+        val enhancedMod = enhanceMod(mod, aspectSet)
+
+        //将模组的信息加载到系统中
+        mod.modId.forEach {
+            systemModMap.set(it, enhancedMod)
+            naturalSystemModMap.set(it, enhancedMod)
+        }
     }
 
     /**
      * 加载模组
      * 将模组的注册信息加载进系统中
      */
-    suspend fun loadMod(user: String, mod: IModule): String {
+    private suspend fun loadMod(user: String, mod: IModule): String {
         // 输出日志信息
         logger.info("user: $user loading mod: ${mod.javaClass}, mod permission: ${mod.modPermission}")
 
@@ -160,17 +186,6 @@ class ModManager(
         // 调用模组的初始化函数
         mod.init(user, parentEnvironment)
 
-        // 将模组的信息加载到系统中
-        val userModMap = (userModMapMap.get(user) ?: run {
-            val modMap = WriteLockHashMap<String, IModule>()
-            userModMapMap.set(user, modMap)
-            modMap
-        })
-
-        mod.modId.forEach {
-            userModMap.set(it, mod)
-        }
-
         parentEnvironment.addRouter(mod, user)
 
         modEnvLastChangeTime = System.currentTimeMillis()
@@ -181,6 +196,18 @@ class ModManager(
             } catch (e: Exception) {
                 e.printStackTrace()
             }
+        }
+
+        val aspectSet = getAspectSet(user)
+        val enhancedMod = enhanceMod(mod, aspectSet)
+
+        // 将模组的信息加载到系统中
+        val userModMap = userModMapMap.get(user) { WriteLockHashMap() }
+        val naturalUserModMap = naturalUserModMapMap.get(user) { WriteLockHashMap() }
+
+        mod.modId.forEach {
+            userModMap.set(it, enhancedMod)
+            naturalUserModMap.set(it, mod)
         }
 
         return mod.modId[0]
@@ -332,6 +359,50 @@ class ModManager(
             }
             "system" -> getSystemTree()
             else -> getUserTree(user)
+        }
+    }
+
+    private suspend fun getModMap(user: String?): AsyncPotableMap<String, IModule>? {
+        return if (user == null) systemModMap
+        else {
+            userModMapMap.get(user)
+        }
+    }
+
+    private suspend fun getNaturalModMap(user: String?): AsyncPotableMap<String, IModule>? {
+        return if (user == null) naturalSystemModMap
+        else {
+            naturalUserModMapMap.get(user)
+        }
+    }
+
+    private suspend fun getAspectSet(user: String?): AsyncPotableSet<Aspect> = aspectMap.get(user) { AsyncMapSet() }
+
+    override suspend fun addAspect(user: String?, aspect: Aspect) {
+        val aspectSet = getAspectSet(user)
+        if (!aspectSet.contains(aspect)) {
+            val modMap = getModMap(user)
+            modMap?.forEach { (id, mod) ->
+                val topMod = ProxyHandler.getTopBean(mod)
+                if (aspect.pointcut.matchClass(topMod.javaClass)) {
+                    modMap.set(id, ProxyHandler.proxyEnhance(mod, aspect) as IModule)
+                }
+                true
+            }
+            aspectSet.put(aspect)
+        }
+    }
+
+    override suspend fun removeAspect(user: String?, aspect: Aspect) {
+        val aspectSet = aspectMap.get(user) ?: return
+        aspectSet.remove(aspect)
+        val modMap = getModMap(user) ?: return
+        val naturalMap = getNaturalModMap(user) ?: return
+
+        modMap.clear()
+        naturalMap.forEach { (id, mod) ->
+            modMap.set(id, enhanceMod(mod, aspectSet))
+            true
         }
     }
 }
