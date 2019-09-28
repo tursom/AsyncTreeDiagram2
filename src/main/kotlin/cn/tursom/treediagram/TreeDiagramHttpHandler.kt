@@ -1,5 +1,6 @@
 package cn.tursom.treediagram
 
+import cn.tursom.aop.aspect.Aspect
 import cn.tursom.database.async.AsyncSqlAdapter
 import cn.tursom.database.async.sqlite.AsyncSqliteHelper
 import cn.tursom.treediagram.environment.*
@@ -17,7 +18,9 @@ import cn.tursom.treediagram.utils.Config
 import cn.tursom.treediagram.utils.ModException
 import cn.tursom.treediagram.utils.WrongTokenException
 import cn.tursom.utils.background
+import cn.tursom.utils.datastruct.async.interfaces.AsyncMap
 import cn.tursom.utils.datastruct.async.interfaces.AsyncPotableMap
+import cn.tursom.utils.datastruct.async.interfaces.AsyncSet
 import cn.tursom.utils.randomInt
 import cn.tursom.utils.xml.Xml
 import cn.tursom.web.HttpContent
@@ -80,6 +83,11 @@ class TreeDiagramHttpHandler(val config: Config) : HttpHandler<NettyHttpContent,
     val routerManager = RouterManager(logger)
     @Suppress("RedundantOverride")
     val adminEnvironment: AdminEnvironment = object : AdminEnvironment, RouterManage by routerManager {
+
+        override val aspectMap: AsyncMap<out String?, out AsyncSet<Aspect>> get() = modManager.aspectMap
+        override suspend fun addAspect(user: String?, aspect: Aspect) = modManager.addAspect(user, aspect)
+        override suspend fun removeAspect(user: String?, aspect: Aspect) = modManager.removeAspect(user, aspect)
+
         override val logger: Logger = this@TreeDiagramHttpHandler.logger
         override val modManager: ModManager get() = this@TreeDiagramHttpHandler.modManager
         override val config: Config = this@TreeDiagramHttpHandler.config
