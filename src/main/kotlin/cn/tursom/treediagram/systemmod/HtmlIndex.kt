@@ -8,7 +8,7 @@ import cn.tursom.utils.usingTime
 import cn.tursom.web.HttpContent
 import cn.tursom.web.netty.NettyAdvanceByteBuffer
 import cn.tursom.web.netty.NettyHttpContent
-import cn.tursom.web.router.SuspendRouterNode
+import cn.tursom.web.router.suspend.impl.node.ISuspendColonStarNode
 import cn.tursom.web.utils.EmptyHttpContent
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
@@ -30,7 +30,7 @@ class HtmlIndex : Module() {
     }
 
     private suspend fun toString(
-        node: SuspendRouterNode<out IModule>,
+        node: ISuspendColonStarNode<out IModule>,
         stringBuilder: StringBuilder,
         indentation: String
     ) {

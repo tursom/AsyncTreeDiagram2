@@ -18,13 +18,13 @@ import cn.tursom.utils.datastruct.async.collections.AsyncMapSet
 import cn.tursom.utils.datastruct.async.interfaces.AsyncPotableMap
 import cn.tursom.utils.datastruct.async.interfaces.AsyncPotableSet
 import cn.tursom.utils.datastruct.async.interfaces.AsyncSet
-import cn.tursom.web.router.SuspendRouter
+import cn.tursom.web.router.suspend.impl.SuspendColonStarRouter
 import kotlinx.coroutines.runBlocking
 import java.util.logging.Logger
 
 class ModManager(
     val parentEnvironment: AdminEnvironment,
-    val router: SuspendRouter<IModule>
+    val router: SuspendColonStarRouter<IModule>
 ) : ModManage {
     override val modManager: ModManager = this
     override val logger = Logger.getLogger("ModManager")!!

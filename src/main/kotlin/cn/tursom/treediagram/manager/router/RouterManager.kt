@@ -2,12 +2,12 @@ package cn.tursom.treediagram.manager.router
 
 import cn.tursom.treediagram.environment.RouterManage
 import cn.tursom.treediagram.module.IModule
-import cn.tursom.web.router.SuspendRouter
+import cn.tursom.web.router.suspend.impl.SuspendColonStarRouter
 import java.util.logging.Logger
 
 class RouterManager(override val logger: Logger) : RouterManage {
     override val routerLastChangeTime: Long get() = router.lashChangeTime
-    override val router: SuspendRouter<IModule> = SuspendRouter()
+    override val router: SuspendColonStarRouter<IModule> = SuspendColonStarRouter()
     override suspend fun getRouterTree(): String = router.suspendToString()
 
     override suspend fun addRouter(mod: IModule, user: String?) {
