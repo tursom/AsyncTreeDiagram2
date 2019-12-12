@@ -1,5 +1,7 @@
 package cn.tursom.treediagram.systemmod
 
+import cn.tursom.core.AsyncFile
+import cn.tursom.core.buffer.read
 import cn.tursom.treediagram.environment.Environment
 import cn.tursom.treediagram.module.AbsoluteModPath
 import cn.tursom.treediagram.module.Module
@@ -7,8 +9,6 @@ import cn.tursom.treediagram.module.ModPath
 import cn.tursom.treediagram.module.NeedBody
 import cn.tursom.treediagram.service.RegisterService
 import cn.tursom.treediagram.utils.ModException
-import cn.tursom.utils.AsyncFile
-import cn.tursom.utils.bytebuffer.readNioBuffer
 import cn.tursom.web.HttpContent
 import java.io.File
 
@@ -62,7 +62,7 @@ class Upload : Module() {
         }
 
         // 写入文件
-        val size = content.body!!.readNioBuffer { file.writeAndWait(it) }
+        val size = file.writeAndWait(content.body!!)
         file.close()
         content.setResponseHeader("filename", filename)
         //返回上传的文件名

@@ -5,7 +5,7 @@ import cn.tursom.database.async.AsyncSqlHelper
 import cn.tursom.database.clauses.clause
 import cn.tursom.treediagram.environment.ServerEnvironment
 import cn.tursom.treediagram.utils.ModException
-import cn.tursom.utils.sha256
+import cn.tursom.core.sha256
 import cn.tursom.web.HttpContent
 import java.util.logging.Level
 import java.util.logging.Logger

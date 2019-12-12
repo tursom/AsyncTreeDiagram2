@@ -1,9 +1,9 @@
 package cn.tursom.treediagram.environment
 
 import cn.tursom.aop.aspect.Aspect
+import cn.tursom.core.datastruct.async.interfaces.AsyncMap
+import cn.tursom.core.datastruct.async.interfaces.AsyncSet
 import cn.tursom.treediagram.module.IModule
-import cn.tursom.utils.datastruct.async.interfaces.AsyncMap
-import cn.tursom.utils.datastruct.async.interfaces.AsyncSet
 
 interface ModManage : ModEnvironment {
     val modManager: ModManage

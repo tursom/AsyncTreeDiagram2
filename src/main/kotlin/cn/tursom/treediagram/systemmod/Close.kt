@@ -1,11 +1,11 @@
 package cn.tursom.treediagram.systemmod
 
+import cn.tursom.core.AsyncFile
+import cn.tursom.core.buffer.impl.HeapByteBuffer
 import cn.tursom.treediagram.environment.AdminEnvironment
 import cn.tursom.treediagram.environment.Environment
 import cn.tursom.treediagram.module.*
 import cn.tursom.treediagram.utils.ModException
-import cn.tursom.utils.AsyncFile
-import cn.tursom.utils.bytebuffer.HeapByteBuffer
 import cn.tursom.utils.xml.Xml
 import cn.tursom.web.HttpContent
 import java.util.logging.Level
@@ -32,7 +32,7 @@ class Close : Module() {
         fileHandler.close()
         val configFile = AsyncFile("config.xml")
         configFile.delete()
-        configFile.write(HeapByteBuffer.wrap(Xml.toXml(config)))
+        configFile.write(HeapByteBuffer(Xml.toXml(config)))
         exitProcess(0)
     }
 }

@@ -2,6 +2,10 @@ package cn.tursom.treediagram.manager.mod
 
 import cn.tursom.aop.ProxyHandler
 import cn.tursom.aop.aspect.Aspect
+import cn.tursom.core.datastruct.async.interfaces.AsyncPotableMap
+import cn.tursom.core.datastruct.async.interfaces.AsyncPotableSet
+import cn.tursom.core.datastruct.async.interfaces.AsyncSet
+import cn.tursom.core.getClassByPackage
 import cn.tursom.treediagram.environment.AdminEnvironment
 import cn.tursom.treediagram.environment.Environment
 import cn.tursom.treediagram.environment.ModManage
@@ -15,11 +19,10 @@ import cn.tursom.utils.cache.interfaces.AsyncPotableCacheMap
 import cn.tursom.utils.datastruct.async.ReadWriteLockHashMap
 import cn.tursom.utils.datastruct.async.WriteLockHashMap
 import cn.tursom.utils.datastruct.async.collections.AsyncMapSet
-import cn.tursom.utils.datastruct.async.interfaces.AsyncPotableMap
-import cn.tursom.utils.datastruct.async.interfaces.AsyncPotableSet
-import cn.tursom.utils.datastruct.async.interfaces.AsyncSet
+import cn.tursom.web.router.Router
 import cn.tursom.web.router.suspend.impl.SuspendColonStarRouter
 import kotlinx.coroutines.runBlocking
+import java.util.logging.Level
 import java.util.logging.Logger
 
 class ModManager(
@@ -43,29 +46,17 @@ class ModManager(
     init {
         // 加载系统模组
         runBlocking {
-            arrayOf<IModule>(
-                cn.tursom.treediagram.systemmod.Echo(),
-                cn.tursom.treediagram.systemmod.Email(),
-                cn.tursom.treediagram.systemmod.GroupEmail(),
-                cn.tursom.treediagram.systemmod.MultipleEmail(),
-                cn.tursom.treediagram.systemmod.ModLoader(),
-                cn.tursom.treediagram.systemmod.Upload(),
-                cn.tursom.treediagram.systemmod.GetUploadFileList(),
-                cn.tursom.treediagram.systemmod.Register(),
-                cn.tursom.treediagram.systemmod.Login(),
-                cn.tursom.treediagram.systemmod.Close(),
-                cn.tursom.treediagram.systemmod.LoadedMod(),
-                cn.tursom.treediagram.systemmod.RouterTree(),
-                cn.tursom.treediagram.systemmod.Help(),
-                cn.tursom.treediagram.systemmod.ModTree(),
-                cn.tursom.treediagram.systemmod.ModRemover(),
-                cn.tursom.treediagram.systemmod.Download(),
-                cn.tursom.treediagram.systemmod.AutoLoadMod(),
-                cn.tursom.treediagram.systemmod.HtmlIndex(),
-                cn.tursom.treediagram.systemmod.Router(),
-                cn.tursom.treediagram.systemmod.GuestLogin()
-            ).forEach {
-                loadMod(it)
+            getClassByPackage("cn.tursom.treediagram.systemmod").forEach {
+                try {
+                    logger.log(Level.INFO, "try load class $it")
+                    Class.forName(it)?.let { clazz ->
+                        if (IModule::class.java.isAssignableFrom(clazz)) {
+                            loadMod(clazz.newInstance()!! as IModule)
+                        }
+                    }
+                } catch (e: Exception) {
+                    logger.log(Level.INFO, "load class $it failed")
+                }
             }
         }
     }

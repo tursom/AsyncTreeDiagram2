@@ -1,6 +1,10 @@
 package cn.tursom.treediagram
 
 import cn.tursom.aop.aspect.Aspect
+import cn.tursom.core.datastruct.async.interfaces.AsyncMap
+import cn.tursom.core.datastruct.async.interfaces.AsyncPotableMap
+import cn.tursom.core.datastruct.async.interfaces.AsyncSet
+import cn.tursom.core.randomInt
 import cn.tursom.database.async.AsyncSqlAdapter
 import cn.tursom.database.async.sqlite.AsyncSqliteHelper
 import cn.tursom.treediagram.environment.*
@@ -18,10 +22,6 @@ import cn.tursom.treediagram.utils.Config
 import cn.tursom.treediagram.utils.ModException
 import cn.tursom.treediagram.utils.WrongTokenException
 import cn.tursom.utils.background
-import cn.tursom.utils.datastruct.async.interfaces.AsyncMap
-import cn.tursom.utils.datastruct.async.interfaces.AsyncPotableMap
-import cn.tursom.utils.datastruct.async.interfaces.AsyncSet
-import cn.tursom.utils.randomInt
 import cn.tursom.utils.xml.Xml
 import cn.tursom.web.HttpContent
 import cn.tursom.web.HttpHandler
@@ -109,7 +109,7 @@ class TreeDiagramHttpHandler(val config: Config) : HttpHandler<NettyHttpContent,
         }
 
         override fun tokenStr(content: HttpContent) =
-            content.getHeader("token") ?: content.getParam("token") ?: content.getCookie("token")?.value
+            content.getHeader("token") ?: content.getParam("token") ?: content.getCookie("token")
 
         override suspend fun makeGuestToken(): String {
             return TokenData.getGuestToken(secretKey)
@@ -178,13 +178,13 @@ class TreeDiagramHttpHandler(val config: Config) : HttpHandler<NettyHttpContent,
                 logger.log(Level.WARNING, "${e.javaClass}: ${e.message}")
                 content.responseCode = 500
                 content.reset()
-                e.printStackTrace(PrintStream(content.responseBody))
+                e.printStackTrace(PrintStream(content.responseBodyBuf.toString(Charsets.UTF_8)))
                 content.finish()
             } catch (e: Throwable) {
                 e.printStackTrace()
                 content.responseCode = 500
                 content.reset()
-                e.printStackTrace(PrintStream(content.responseBody))
+                e.printStackTrace(PrintStream(content.responseBodyBuf.toString(Charsets.UTF_8)))
                 content.finish()
             }
         }

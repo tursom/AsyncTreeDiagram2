@@ -1,6 +1,6 @@
 package cn.tursom.treediagram.datastruct
 
-import cn.tursom.utils.base64
+import cn.tursom.core.base64
 import com.sun.mail.util.MailSSLSocketFactory
 import java.net.URL
 import java.util.*

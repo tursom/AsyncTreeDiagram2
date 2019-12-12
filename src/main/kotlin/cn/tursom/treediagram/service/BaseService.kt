@@ -2,7 +2,7 @@ package cn.tursom.treediagram.service
 
 import cn.tursom.treediagram.environment.Environment
 
-abstract class BaseService() : Service {
+abstract class BaseService : Service {
     override val serviceUser: String? = null
     override val adminService: Boolean = javaClass.getAnnotation(AdminService::class.java) != null
     override val serviceId: Array<out String> = super.serviceId

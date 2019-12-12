@@ -8,7 +8,7 @@ import cn.tursom.treediagram.module.ModPath
 import cn.tursom.treediagram.service.RegisterService
 import cn.tursom.treediagram.service.ServiceId
 import cn.tursom.treediagram.utils.ModException
-import cn.tursom.utils.urlDecode
+import cn.tursom.core.urlDecode
 import cn.tursom.web.HttpContent
 
 @AbsoluteModPath("echo", "echo/*", "echo/:message")

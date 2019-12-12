@@ -4,9 +4,9 @@ import cn.tursom.treediagram.environment.AdminEnvironment
 import cn.tursom.treediagram.environment.AdminRouterEnvironment
 import cn.tursom.treediagram.environment.Environment
 import cn.tursom.treediagram.module.*
-import cn.tursom.utils.usingTime
+import cn.tursom.core.usingTime
 import cn.tursom.web.HttpContent
-import cn.tursom.web.netty.NettyAdvanceByteBuffer
+import cn.tursom.web.netty.NettyByteBuffer
 import cn.tursom.web.netty.NettyHttpContent
 import cn.tursom.web.router.suspend.impl.node.ISuspendColonStarNode
 import cn.tursom.web.utils.EmptyHttpContent
@@ -85,13 +85,13 @@ class HtmlIndex : Module() {
             try {
                 environment.token(content)
             } catch (e: Exception) {
-                content.decodeCookie("token")
+                //content.deleteCookie("token")
                 content.addCookie("token", environment.makeGuestToken(), path = "/")
             }
             handle(content, environment)
             content.setCacheTag(cacheTime)
             if (content is NettyHttpContent) {
-                content.finishHtml(NettyAdvanceByteBuffer(nettyCache!!.retainedSlice()))
+                content.finishHtml(NettyByteBuffer(nettyCache!!.retainedSlice()))
             } else {
                 content.finishHtml(bytesCache)
             }
